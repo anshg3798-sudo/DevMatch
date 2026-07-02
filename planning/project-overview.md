@@ -1,15 +1,40 @@
 # DevMatch
 
-A platform where students can find teammates for projects based on skills.
+## Problem Statement
 
-Problem:
-Students have ideas but cannot find teammates.
+Many students have great project ideas but struggle to find teammates with the required skills.
 
-Solution:
-Allow students to create profiles, showcase skills, post projects, invite teammates, and collaborate.
+Current solutions require using multiple platforms like LinkedIn, Discord, GitHub, WhatsApp, and Trello.
 
-Target Users
+## Solution
 
-- College Students
-- Developers
-- Hackathon Teams
+DevMatch is a platform where students can:
+
+- Create a developer profile
+- Showcase their skills
+- Post project ideas
+- Search for developers
+- Invite teammates
+- Build projects together
+
+## Target Users
+
+- College students
+- Hackathon participants
+- Freelance student teams
+- Open-source contributors
+
+## Tech Stack
+
+Frontend
+- React
+
+Backend
+- Node.js
+- Express.js
+
+Database
+- MongoDB
+
+Authentication
+- JWT

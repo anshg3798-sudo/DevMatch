@@ -1,49 +1,58 @@
-Authentication
+# Version 1 Features
 
-Signup
+## Authentication
 
-Login
+- Signup
+- Login
+- Logout
 
-Logout
+## Profile
 
---------------------
+- Create Profile
+- Edit Profile
+- Skills
+- GitHub
+- Portfolio
 
-Profile
+## Projects
 
-Edit Profile
+- Create Project
+- Edit Project
+- Delete Project
 
-Add Skills
+## Search
 
-GitHub Link
+- Search Developers
+- Filter by Skills
 
-Portfolio
+## Invitations
 
---------------------
+- Send Invitation
+- Accept Invitation
+- Reject Invitation
 
-Projects
+## Dashboard
 
-Create Project
+- My Projects
+- Pending Invitations
+Every student profile should contain
 
-Edit Project
+Programming Languages
 
-Delete Project
+Frameworks
 
-Invite Members
+Tools
 
---------------------
+Availability
 
-Search
+Past Projects
 
-Search Students
+Experience Level
 
-Filter by Skills
+Preferred Project Type
 
-Filter by College
+Timezone
 
---------------------
+College
 
-Invitations
-
-Accept
-
-Reject
+Current Semester

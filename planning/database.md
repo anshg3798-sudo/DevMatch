@@ -1,32 +1,50 @@
-User
+# Database Design
 
-Name
+## User
 
-Email
+- id
+- name
+- email
+- password
+- college
+- branch
+- year
+- bio
+- skills[]
+- github
+- linkedin
+- portfolio
+- availability
+- timezone
+- experienceLevel
+- rating
+- completedProjects
+- createdAt
+- updatedAt
 
-Password
+---
 
-College
+## Project
 
-Skills
+- id
+- title
+- description
+- ownerId
+- requiredSkills[]
+- teamSize
+- currentMembers[]
+- status
+- difficulty
+- projectType
+- deadline
 
-Bio
+---
 
-GitHub
+## Invitation
 
-Portfolio
-
-
-Project
-
-Title
-
-Description
-
-Owner
-
-Members
-
-Required Skills
-
-Deadline
+- id
+- senderId
+- receiverId
+- projectId
+- status
+- message
