@@ -1,5 +1,5 @@
 import { Menu } from "lucide-react";
-
+import { Link } from "react-router-dom";
 const navLinks = [
   {
     name: "Explore Projects",
@@ -45,13 +45,18 @@ function Navbar() {
 
         {/* Right Section */}
         <div className="hidden items-center gap-4 md:flex">
-          <button className="rounded-lg px-5 py-2 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white">
+          <Link 
+          to="/login"
+          className="rounded-lg px-5 py-2 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+            >
             Login
-          </button>
+          </Link>
 
-          <button className="rounded-xl bg-blue-600 px-5 py-2 font-semibold text-white transition hover:bg-blue-700">
+          <Link 
+          to="/signup"
+          className="rounded-xl bg-blue-600 px-5 py-2 font-semibold text-white transition hover:bg-blue-700">
             Sign Up
-          </button>
+          </Link>
         </div>
 
         {/* Mobile Menu Icon */}
