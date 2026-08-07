@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
-
+const applicationRoutes = require("./routes/applicationRoutes");
 // Load environment variables
 dotenv.config();
 
@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/applications", applicationRoutes);
 // Test Route
 app.get("/", (req, res) => {
     res.send("DevMatch API is running...");
