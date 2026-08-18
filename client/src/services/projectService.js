@@ -7,9 +7,16 @@ export const createProject = async (projectData) => {
   return response.data;
 };
 
-// Get all projects created by the logged-in recruiter
+// Get projects created by the logged-in recruiter
 export const getMyProjects = async () => {
   const response = await API.get("/projects/my-projects");
+
+  return response.data;
+};
+
+// Get all public projects
+export const getAllProjects = async () => {
+  const response = await API.get("/projects");
 
   return response.data;
 };

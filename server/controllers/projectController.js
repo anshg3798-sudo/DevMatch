@@ -163,9 +163,34 @@ const deleteProject = async (req, res) => {
 
     }
 };
+const getMyProjects = async (req, res) => {
+    try {
+        const projects = await Project.find({
+            createdBy: req.user.id
+        })
+            .populate("createdBy", "name email")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: projects.length,
+            projects
+        });
+
+    } catch (error) {
+        console.error("Get My Projects Error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
 module.exports = {
     createProject,
     getAllProjects,
+     getMyProjects,
     getProjectById,
     updateProject,
     deleteProject

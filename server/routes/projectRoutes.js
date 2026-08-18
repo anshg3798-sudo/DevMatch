@@ -5,7 +5,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-     createProject,getAllProjects,getProjectById,updateProject,deleteProject
+     createProject,getAllProjects, getMyProjects,getProjectById,updateProject,deleteProject
      } = require("../controllers/projectController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -15,6 +15,13 @@ const {
 } = require("../middleware/roleMiddleware");
 
 router.get("/", getAllProjects);
+
+router.get(
+    "/my-projects",
+    authMiddleware,
+    isRecruiter,
+    getMyProjects
+);
 router.get("/:id", getProjectById);
 router.post(
     "/",

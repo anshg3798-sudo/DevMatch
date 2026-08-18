@@ -11,7 +11,6 @@ const CreateProjectForm = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    requirements: "",
   });
 
   const [skills, setSkills] = useState([]);
@@ -231,32 +230,6 @@ const CreateProjectForm = () => {
 
             </div>
           )}
-
-        </div>
-      </section>
-
-      {/* Requirements */}
-
-      <section>
-        <h2 className="text-lg font-semibold text-white">
-          Project Requirements
-        </h2>
-
-        <p className="mt-1 text-sm text-zinc-500">
-          Explain what you expect from the developer.
-        </p>
-
-        <div className="mt-5">
-
-          <textarea
-            id="requirements"
-            name="requirements"
-            value={formData.requirements}
-            onChange={handleChange}
-            rows={6}
-            placeholder="e.g. Experience with REST APIs, Git, and responsive frontend development..."
-            className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-500"
-          />
 
         </div>
       </section>

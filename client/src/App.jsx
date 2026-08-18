@@ -9,6 +9,8 @@ import StudentDashboard from "./pages/StudentDashboard";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CreateProject from "./pages/CreateProject";
 import MyProjects from "./pages/MyProjects";
+import ProjectDetails from "./pages/ProjectDetails";
+import EditProject from "./pages/EditProject";
 function App() {
     return (
         <BrowserRouter>
@@ -58,6 +60,22 @@ function App() {
   element={
     <ProtectedRoute allowedRole="recruiter">
       <MyProjects />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/recruiter/projects/:id"
+  element={
+    <ProtectedRoute allowedRole="recruiter">
+      <ProjectDetails />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/recruiter/projects/:id/edit"
+  element={
+    <ProtectedRoute allowedRole="recruiter">
+      <EditProject />
     </ProtectedRoute>
   }
 />
