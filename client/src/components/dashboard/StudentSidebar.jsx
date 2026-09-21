@@ -1,9 +1,7 @@
 import {
   LayoutDashboard,
-  FolderKanban,
-  PlusSquare,
-  Users,
   Search,
+  FileText,
   User,
   LogOut,
 } from "lucide-react";
@@ -11,7 +9,7 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-const Sidebar = () => {
+const StudentSidebar = () => {
   const navigate = useNavigate();
 
   const { logout } = useAuth();
@@ -20,32 +18,22 @@ const Sidebar = () => {
     {
       title: "Dashboard",
       icon: LayoutDashboard,
-      path: "/recruiter/dashboard",
+      path: "/student/dashboard",
     },
     {
-      title: "Create Project",
-      icon: PlusSquare,
-      path: "/recruiter/create-project",
+      title: "Browse Projects",
+      icon: Search,
+      path: "/student/projects",
     },
     {
-      title: "My Projects",
-      icon: FolderKanban,
-      path: "/recruiter/projects",
+      title: "My Applications",
+      icon: FileText,
+      path: "/student/applications",
     },
-    {
-      title: "Applicants",
-      icon: Users,
-      path: "/recruiter/applicants",
-    },
-    {
-  title: "Search Developers",
-  icon: Search,
-  path: "/recruiter/search",
-   },
     {
       title: "Profile",
       icon: User,
-      path: "/recruiter/profile",
+      path: "/student/profile",
     },
   ];
 
@@ -64,7 +52,7 @@ const Sidebar = () => {
         </h1>
 
         <p className="mt-1 text-sm text-zinc-400">
-          Recruiter Panel
+          Student Panel
         </p>
       </div>
 
@@ -110,4 +98,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default StudentSidebar;

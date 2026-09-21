@@ -11,6 +11,13 @@ import CreateProject from "./pages/CreateProject";
 import MyProjects from "./pages/MyProjects";
 import ProjectDetails from "./pages/ProjectDetails";
 import EditProject from "./pages/EditProject";
+import Profile from "./pages/Profile";
+import Applicants from "./pages/Applicants";
+import StudentProjects from "./pages/StudentProjects";
+import StudentProjectDetails from "./pages/StudentProjectDetails";
+import StudentApplications from "./pages/StudentApplications";
+import StudentProfile from "./pages/StudentProfile";
+import SearchDevelopers from "./pages/SearchDevelopers";
 function App() {
     return (
         <BrowserRouter>
@@ -42,10 +49,18 @@ function App() {
 <Route
     path="/recruiter/dashboard"
     element={
-        <ProtectedRoute>
-            <RecruiterDashboard  allowedRole="recruiter"/>
+        <ProtectedRoute  allowedRole="recruiter">
+            <RecruiterDashboard  />
         </ProtectedRoute>
     }
+/>
+<Route
+  path="/recruiter/search"
+  element={
+    <ProtectedRoute allowedRole="recruiter">
+      <SearchDevelopers />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/recruiter/create-project"
@@ -71,11 +86,61 @@ function App() {
     </ProtectedRoute>
   }
 />
+
 <Route
   path="/recruiter/projects/:id/edit"
   element={
     <ProtectedRoute allowedRole="recruiter">
       <EditProject />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/recruiter/profile"
+  element={
+    <ProtectedRoute allowedRole="recruiter">
+      <Profile />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/recruiter/applicants"
+  element={
+    <ProtectedRoute allowedRole="recruiter">
+      <Applicants />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/student/projects"
+  element={
+    <ProtectedRoute allowedRole="student">
+      <StudentProjects />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/student/projects/:id"
+  element={
+    <ProtectedRoute allowedRole="student">
+      <StudentProjectDetails />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/student/applications"
+  element={
+    <ProtectedRoute allowedRole="student">
+      <StudentApplications />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/student/profile"
+  element={
+    <ProtectedRoute allowedRole="student">
+      <StudentProfile />
     </ProtectedRoute>
   }
 />

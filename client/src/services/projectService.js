@@ -46,3 +46,10 @@ export const deleteProject = async (projectId) => {
 
   return response.data;
 };
+export const getRecruiterStats = async () => {
+  const response = await API.get(
+    "/projects/recruiter/stats"
+  );
+
+  return response.data;
+};

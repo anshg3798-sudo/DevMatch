@@ -39,17 +39,11 @@ const QuickActions = () => {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-white">
-          Quick Actions
-        </h2>
+      <h2 className="text-xl font-semibold text-white">
+        Quick Actions
+      </h2>
 
-        <p className="mt-1 text-sm text-zinc-500">
-          Frequently used recruiter actions
-        </p>
-      </div>
-
-      <div className="space-y-3">
+      <div className="mt-4 space-y-3">
         {actions.map((action) => {
           const Icon = action.icon;
 
@@ -57,10 +51,10 @@ const QuickActions = () => {
             <button
               key={action.title}
               onClick={() => navigate(action.path)}
-              className="flex w-full items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 text-left transition hover:border-indigo-500/30 hover:bg-zinc-900"
+              className="flex w-full items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-left transition hover:border-indigo-500/40 hover:bg-zinc-800"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
-                <Icon size={19} />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+                <Icon size={20} />
               </div>
 
               <div>
@@ -68,7 +62,7 @@ const QuickActions = () => {
                   {action.title}
                 </p>
 
-                <p className="mt-1 text-xs text-zinc-500">
+                <p className="mt-1 text-sm text-zinc-500">
                   {action.description}
                 </p>
               </div>
