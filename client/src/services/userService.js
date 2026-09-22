@@ -21,3 +21,8 @@ export const searchDevelopers = async (search = "") => {
 
   return response.data;
 };
+export const getDeveloperById = async (id) => {
+  const response = await API.get(`/users/developers/${id}`);
+
+  return response.data;
+};

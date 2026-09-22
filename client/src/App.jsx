@@ -18,6 +18,7 @@ import StudentProjectDetails from "./pages/StudentProjectDetails";
 import StudentApplications from "./pages/StudentApplications";
 import StudentProfile from "./pages/StudentProfile";
 import SearchDevelopers from "./pages/SearchDevelopers";
+import DeveloperDetails from "./pages/DeveloperDetails";
 function App() {
     return (
         <BrowserRouter>
@@ -133,6 +134,14 @@ function App() {
   element={
     <ProtectedRoute allowedRole="student">
       <StudentApplications />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/recruiter/developers/:id"
+  element={
+    <ProtectedRoute allowedRole="recruiter">
+      <DeveloperDetails />
     </ProtectedRoute>
   }
 />

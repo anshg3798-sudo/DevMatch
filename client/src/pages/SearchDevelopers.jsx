@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   User,
@@ -20,7 +20,7 @@ const SearchDevelopers = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const navigate = useNavigate();
   const fetchDevelopers = async (searchValue = "") => {
     try {
       setLoading(true);
@@ -230,31 +230,44 @@ const SearchDevelopers = () => {
 
                 {/* Developer links */}
 
-                <div className="mt-6 flex gap-3 border-t border-zinc-800 pt-5">
-                  {developer.github && (
-                    <a
-                      href={developer.github}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-xs text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
-                    >
-                      <ExternalLink size={15} />
-                      GitHub
-                    </a>
-                  )}
+               {/* Developer links */}
 
-                  {developer.leetcode && (
-                    <a
-                      href={developer.leetcode}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-xs text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
-                    >
-                      <Code2 size={15} />
-                      LeetCode
-                    </a>
-                  )}
-                </div>
+<div className="mt-6 flex flex-wrap gap-3 border-t border-zinc-800 pt-5">
+  {developer.github && (
+    <a
+      href={developer.github}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-xs text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+    >
+      <ExternalLink size={15} />
+      GitHub
+    </a>
+  )}
+
+  {developer.leetcode && (
+    <a
+      href={developer.leetcode}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-xs text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+    >
+      <Code2 size={15} />
+      LeetCode
+    </a>
+  )}
+
+  <button
+    type="button"
+    onClick={() =>
+      navigate(`/recruiter/developers/${developer._id}`)
+    }
+    className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-indigo-500"
+  >
+    <User size={15} />
+    View Profile
+  </button>
+</div> 
               </div>
             ))}
           </div>

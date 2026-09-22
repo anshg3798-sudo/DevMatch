@@ -1,23 +1,22 @@
-const mongoose = require("mongoose");
 const Application = require("../models/Application");
 const Project = require("../models/Project");
-const calculateCompatibility = require("../utils/matchScore");
-const getCompatibilityExplanation = require("../utils/compatibilityExplaination");
+const User = require("../models/User");
+const {
+  calculateMatchingScore,
+} = require("../utils/matchingEngine");
 const applyToProject = async (req, res) => {
   try {
     const { projectId } = req.params;
+
     const studentId = req.user.id;
 
-    // Check ObjectId
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid project ID.",
-      });
-    }
-
-    // Check project exists
-    const project = await Project.findById(projectId);
+    // Find project
+    const project = await Project.findById(
+      projectId
+    ).populate(
+      "createdBy",
+      "name email"
+    );
 
     if (!project) {
       return res.status(404).json({
@@ -26,61 +25,84 @@ const applyToProject = async (req, res) => {
       });
     }
 
-    // Prevent recruiter from applying to own project
-    if (project.createdBy.toString() === studentId) {
+    // Don't allow applications to closed projects
+    if (project.status === "closed") {
       return res.status(400).json({
         success: false,
-        message: "You cannot apply to your own project.",
+        message:
+          "This project is no longer accepting applications.",
       });
     }
 
-    // Check duplicate application
-    const existingApplication = await Application.findOne({
-      student: studentId,
-      project: projectId,
-    });
+    // Find student
+    const student = await User.findById(
+      studentId
+    );
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found.",
+      });
+    }
+
+    // Prevent duplicate applications
+    const existingApplication =
+      await Application.findOne({
+        project: projectId,
+        student: studentId,
+      });
 
     if (existingApplication) {
       return res.status(400).json({
         success: false,
-        message: "You have already applied to this project.",
+        message:
+          "You have already applied to this project.",
       });
     }
-   
-    // Fetch student details
-const student = await User.findById(studentId);
 
-if (!student) {
-    return res.status(404).json({
-        success: false,
-        message: "Student not found.",
-    });
-}
+    // Calculate compatibility
+    const compatibility =
+      calculateMatchingScore({
+        developer: student,
+        project,
+      });
 
-// Calculate compatibility score
-const compatibility = calculateCompatibility(
-    student.skills,
-    project.requiredSkills
-);
+    // Create application
+    const application =
+      await Application.create({
+        project: projectId,
+        student: studentId,
+        status: "Pending",
 
-// Create application
-const application = await Application.create({
-    student: studentId,
-    project: projectId,
-    compatibilityScore: compatibility.score
-});
+        compatibilityScore:
+          compatibility.score,
 
-    return res.status(201).json({
+        compatibilityBreakdown:
+          compatibility.breakdown,
+
+        matchedSkills:
+          compatibility.matchedSkills,
+
+        missingSkills:
+          compatibility.missingSkills,
+      });
+
+    res.status(201).json({
       success: true,
       message: "Application submitted successfully.",
-      compatibility,
       application,
+      compatibility,
     });
-
   } catch (error) {
-    return res.status(500).json({
+    console.error(
+      "Apply to project error:",
+      error
+    );
+
+    res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to apply to project.",
     });
   }
 };
@@ -115,16 +137,16 @@ const getApplicants = async (req, res) => {
         "name email skills github leetcode"
       )
       .sort({ createdAt: -1 });
-      const applicantsWithExplanation = applications.map((application) => {
-
-    const explanation = getCompatibilityExplanation(
-        application.student.skills,
-        project.requiredSkills
-    );
+     const applicantsWithExplanation = applications.map((application) => {
 
     return {
         ...application.toObject(),
-        explanation,
+
+        explanation: {
+            breakdown: application.compatibilityBreakdown,
+            matchedSkills: application.matchedSkills,
+            missingSkills: application.missingSkills,
+        },
     };
 
 });

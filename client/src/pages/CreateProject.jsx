@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import CreateProjectForm from "../components/project/CreateProjectForm";
-
 const CreateProject = () => {
   const navigate = useNavigate();
 
@@ -40,6 +39,7 @@ const CreateProject = () => {
         </div>
 
       </div>
+
     </DashboardLayout>
   );
 };

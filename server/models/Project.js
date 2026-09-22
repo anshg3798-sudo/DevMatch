@@ -22,7 +22,24 @@ const projectSchema = new mongoose.Schema(
                 trim: true
             }
         ],
+      experienceRequired: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
 
+communicationRequired: {
+  type: Number,
+  default: 3,
+  min: 1,
+  max: 5,
+},
+
+availabilityRequired: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",

@@ -41,6 +41,30 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+  experienceYears: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
+communicationRating: {
+  type: Number,
+  default: 3,
+  min: 1,
+  max: 5,
+},
+
+availabilityHours: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
+projectsCount: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
   },
   {
     timestamps: true,

@@ -19,6 +19,42 @@ const applicationSchema = new mongoose.Schema(
       default: 0,
     },
 
+    compatibilityBreakdown: {
+  skills: {
+    type: Number,
+    default: 0,
+  },
+
+  availability: {
+    type: Number,
+    default: 0,
+  },
+
+  experience: {
+    type: Number,
+    default: 0,
+  },
+
+  communication: {
+    type: Number,
+    default: 0,
+  },
+
+  projects: {
+    type: Number,
+    default: 0,
+  },
+},
+
+matchedSkills: {
+  type: [String],
+  default: [],
+},
+
+missingSkills: {
+  type: [String],
+  default: [],
+},
     status: {
       type: String,
       enum: ["Pending", "Accepted", "Rejected"],

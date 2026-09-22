@@ -5,7 +5,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-     createProject,getAllProjects, getMyProjects,getProjectById,updateProject,deleteProject
+     createProject,getAllProjects, getMyProjects,getProjectById,updateProject,deleteProject,getRecruiterStats
      } = require("../controllers/projectController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -40,5 +40,11 @@ router.delete(
     authMiddleware,
     isRecruiter,
     deleteProject
+);
+router.get(
+  "/recruiter/stats",
+  authMiddleware,
+  isRecruiter,
+  getRecruiterStats
 );
 module.exports = router;

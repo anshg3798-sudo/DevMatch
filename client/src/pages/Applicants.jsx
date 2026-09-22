@@ -288,7 +288,73 @@ const Applicants = () => {
                             <p className="text-xs text-zinc-500">
                               Compatibility
                             </p>
+                             {/* Compatibility Breakdown */}
 
+{application.explanation.breakdown && (
+  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+      <p className="text-xs text-zinc-500">
+        Skills
+      </p>
+      <p className="mt-1 text-lg font-semibold text-white">
+        {application.explanation.breakdown.skills ?? 0}%
+      </p>
+      <p className="text-xs text-zinc-600">
+        Weight: 40%
+      </p>
+    </div>
+
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+      <p className="text-xs text-zinc-500">
+        Availability
+      </p>
+      <p className="mt-1 text-lg font-semibold text-white">
+        {application.explanation.breakdown.availability ?? 0}%
+      </p>
+      <p className="text-xs text-zinc-600">
+        Weight: 20%
+      </p>
+    </div>
+
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+      <p className="text-xs text-zinc-500">
+        Experience
+      </p>
+      <p className="mt-1 text-lg font-semibold text-white">
+        {application.explanation.breakdown.experience ?? 0}%
+      </p>
+      <p className="text-xs text-zinc-600">
+        Weight: 15%
+      </p>
+    </div>
+
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+      <p className="text-xs text-zinc-500">
+        Communication
+      </p>
+      <p className="mt-1 text-lg font-semibold text-white">
+        {application.explanation.breakdown.communication ?? 0}%
+      </p>
+      <p className="text-xs text-zinc-600">
+        Weight: 15%
+      </p>
+    </div>
+
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+      <p className="text-xs text-zinc-500">
+        Projects
+      </p>
+      <p className="mt-1 text-lg font-semibold text-white">
+        {application.explanation.breakdown.projects ?? 0}%
+      </p>
+      <p className="text-xs text-zinc-600">
+        Weight: 10%
+      </p>
+    </div>
+
+  </div>
+)}
                             <p className="mt-1 text-2xl font-bold text-indigo-400">
                               {application.compatibilityScore ??
                                 0}

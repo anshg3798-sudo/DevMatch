@@ -1,90 +1,134 @@
 import { useEffect, useState } from "react";
+
 import {
   ArrowLeft,
-  FolderKanban,
+  Briefcase,
+  Calendar,
+  User,
+  Clock,
+  MessageCircle,
+  Award,
+  CheckCircle,
   Loader2,
   AlertCircle,
-  User,
-  Mail,
-  CheckCircle,
 } from "lucide-react";
 
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
 import StudentDashboardLayout from "../components/dashboard/StudentDashboardLayout";
+
 import { getProjectById } from "../services/projectService";
-import { applyToProject } from "../services/applicationService";
+
+import {
+  applyToProject,
+} from "../services/applicationService";
+
 const StudentProjectDetails = () => {
-const { id } = useParams();
-const navigate = useNavigate();
+  const { id } = useParams();
 
-const [project, setProject] = useState(null);
-const [loading, setLoading] = useState(true);
-const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-const [applying, setApplying] = useState(false);
-const [applicationMessage, setApplicationMessage] = useState("");
-const [applicationError, setApplicationError] = useState("");
-const [applied, setApplied] = useState(false);
+  const [project, setProject] = useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [applying, setApplying] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
+    useState("");
+
+  const fetchProject = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data =
+        await getProjectById(id);
+
+      setProject(data.project);
+    } catch (error) {
+      console.error(
+        "Failed to load project:",
+        error
+      );
+
+      setError(
+        error.response?.data?.message ||
+          "Failed to load project."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const data = await getProjectById(id);
-
-        setProject(data.project);
-      } catch (error) {
-        console.error("Failed to load project:", error);
-
-        setError(
-          error.response?.data?.message ||
-            "Failed to load project."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProject();
   }, [id]);
 
-  // Loading
+  const handleApply = async () => {
+    try {
+      setApplying(true);
+      setError("");
+      setSuccess("");
+
+      await applyToProject(id);
+
+      setSuccess(
+        "Application submitted successfully."
+      );
+    } catch (error) {
+      console.error(
+        "Failed to apply:",
+        error
+      );
+
+      setError(
+        error.response?.data?.message ||
+          "Failed to submit application."
+      );
+    } finally {
+      setApplying(false);
+    }
+  };
+
   if (loading) {
     return (
       <StudentDashboardLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="flex items-center gap-3 text-zinc-400">
+        <div className="flex min-h-[60vh] items-center justify-center text-zinc-400">
+          <div className="flex items-center gap-3">
             <Loader2
               size={22}
               className="animate-spin"
             />
-
-            <span>Loading project...</span>
+            Loading project...
           </div>
         </div>
       </StudentDashboardLayout>
     );
   }
 
-  // Error
-  if (error) {
+  if (error && !project) {
     return (
       <StudentDashboardLayout>
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-400">
-          <div className="flex items-center gap-3">
-            <AlertCircle size={20} />
-
-            <p>{error}</p>
-          </div>
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+          <p className="text-red-400">
+            {error}
+          </p>
 
           <button
-            onClick={() => navigate("/student/projects")}
-            className="mt-5 flex items-center gap-2 rounded-xl bg-zinc-800 px-4 py-2.5 text-sm text-white transition hover:bg-zinc-700"
+            onClick={() =>
+              navigate("/student/projects")
+            }
+            className="rounded-lg bg-indigo-600 px-5 py-2.5 text-white hover:bg-indigo-500"
           >
-            <ArrowLeft size={16} />
             Back to Projects
           </button>
         </div>
@@ -92,152 +136,108 @@ const [applied, setApplied] = useState(false);
     );
   }
 
-  // Project not found
   if (!project) {
-    return (
-      <StudentDashboardLayout>
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
-          <h2 className="text-xl font-semibold text-white">
-            Project not found
-          </h2>
-
-          <button
-            onClick={() => navigate("/student/projects")}
-            className="mt-5 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-500"
-          >
-            Back to Projects
-          </button>
-        </div>
-      </StudentDashboardLayout>
-    );
+    return null;
   }
-  const handleApply = async () => {
-  try {
-    setApplying(true);
-    setApplicationMessage("");
-    setApplicationError("");
-
-    const data = await applyToProject(id);
-
-    setApplied(true);
-
-    setApplicationMessage(
-      data.message || "Application submitted successfully."
-    );
-  } catch (error) {
-    console.error("Application failed:", error);
-
-    setApplicationError(
-      error.response?.data?.message ||
-        "Failed to submit application."
-    );
-  } finally {
-    setApplying(false);
-  }
-};
 
   return (
     <StudentDashboardLayout>
-      {/* Back button */}
+      <div className="max-w-5xl">
+        {/* Back */}
 
-      <button
-        onClick={() => navigate("/student/projects")}
-        className="flex items-center gap-2 text-sm text-zinc-400 transition hover:text-white"
-      >
-        <ArrowLeft size={17} />
+        <button
+          onClick={() =>
+            navigate("/student/projects")
+          }
+          className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-white"
+        >
+          <ArrowLeft size={18} />
+          Back to Projects
+        </button>
 
-        Back to Projects
-      </button>
+        {/* Error */}
 
-      {/* Project Header */}
+        {error && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+            <AlertCircle size={20} />
+            {error}
+          </div>
+        )}
 
-      <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400">
-                <FolderKanban size={26} />
+        {/* Success */}
+
+        {success && (
+          <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-400">
+            <CheckCircle size={20} />
+            {success}
+          </div>
+        )}
+
+        {/* Header */}
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 md:p-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="flex gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
+                <Briefcase size={26} />
               </div>
 
               <div>
                 <p className="text-sm text-indigo-400">
-                  Project Details
+                  Project Opportunity
                 </p>
 
-                <h1 className="mt-1 text-3xl font-bold text-white">
+                <h1 className="mt-1 text-2xl font-bold text-white md:text-3xl">
                   {project.title}
                 </h1>
+
+                <p className="mt-2 text-sm text-zinc-500">
+                  Posted by{" "}
+                  <span className="text-zinc-300">
+                    {project.createdBy?.name ||
+                      "Recruiter"}
+                  </span>
+                </p>
               </div>
             </div>
+
+            <button
+              onClick={handleApply}
+              disabled={
+                applying ||
+                project.status === "closed"
+              }
+              className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {applying ? (
+                <>
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
+                  />
+                  Applying...
+                </>
+              ) : project.status === "closed" ? (
+                "Project Closed"
+              ) : (
+                "Apply Now"
+              )}
+            </button>
           </div>
 
-          {/* Apply button will be added in the next step */}
+          {/* Description */}
 
-         <button
-  onClick={handleApply}
-  disabled={applying || applied}
-  className={`flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-medium text-white transition ${
-    applied
-      ? "cursor-not-allowed bg-emerald-600"
-      : "bg-indigo-600 hover:bg-indigo-500"
-  } ${
-    applying
-      ? "cursor-not-allowed opacity-60"
-      : ""
-  }`}
->
-  {applying ? (
-    <>
-      <Loader2
-        size={18}
-        className="animate-spin"
-      />
+          <div className="mt-10">
+            <h2 className="text-lg font-semibold text-white">
+              About This Project
+            </h2>
 
-      Applying...
-    </>
-  ) : applied ? (
-    <>
-      <CheckCircle size={18} />
+            <p className="mt-3 whitespace-pre-wrap leading-7 text-zinc-400">
+              {project.description}
+            </p>
+          </div>
 
-      Applied
-    </>
-  ) : (
-    <>
-      <CheckCircle size={18} />
-
-      Apply to Project
-    </>
-  )}
-</button>
-{applicationMessage && (
-  <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-400">
-    {applicationMessage}
-  </div>
-)}
-
-{applicationError && (
-  <div className="mt-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
-    {applicationError}
-  </div>
-)}
-        </div>
-      </div>
-
-      {/* Main content */}
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
-        {/* About */}
-
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <h2 className="text-xl font-semibold text-white">
-            About This Project
-          </h2>
-
-          <p className="mt-4 leading-7 text-zinc-400">
-            {project.description}
-          </p>
-
-          {/* Required Skills */}
+          {/* Skills */}
 
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-white">
@@ -245,69 +245,107 @@ const [applied, setApplied] = useState(false);
             </h2>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {project.requiredSkills?.length > 0 ? (
-                project.requiredSkills.map(
-                  (skill, index) => (
-                    <span
-                      key={`${skill}-${index}`}
-                      className="rounded-lg bg-zinc-800 px-3 py-2 text-sm text-zinc-300"
-                    >
-                      {skill}
-                    </span>
-                  )
+              {(project.requiredSkills || []).map(
+                (skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-lg bg-zinc-800 px-3 py-2 text-sm text-zinc-300"
+                  >
+                    {skill}
+                  </span>
                 )
-              ) : (
-                <p className="text-sm text-zinc-500">
-                  No specific skills listed.
-                </p>
               )}
             </div>
           </div>
-        </section>
 
-        {/* Recruiter */}
+          {/* Compatibility Requirements */}
 
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <h2 className="text-lg font-semibold text-white">
-            Project Owner
-          </h2>
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-white">
+              Project Requirements
+            </h2>
 
-          <div className="mt-6 space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
-                <User size={18} />
-              </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+                <Briefcase
+                  size={20}
+                  className="text-indigo-400"
+                />
 
-              <div>
-                <p className="text-xs text-zinc-500">
-                  Name
+                <p className="mt-3 text-sm text-zinc-500">
+                  Experience
                 </p>
 
-                <p className="text-sm text-white">
-                  {project.createdBy?.name ||
-                    "Unknown recruiter"}
+                <p className="mt-1 font-semibold text-white">
+                  {project.experienceRequired ||
+                    0}{" "}
+                  years
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+                <Clock
+                  size={20}
+                  className="text-indigo-400"
+                />
+
+                <p className="mt-3 text-sm text-zinc-500">
+                  Availability
+                </p>
+
+                <p className="mt-1 font-semibold text-white">
+                  {project.availabilityRequired ||
+                    0}{" "}
+                  hrs/week
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+                <MessageCircle
+                  size={20}
+                  className="text-indigo-400"
+                />
+
+                <p className="mt-3 text-sm text-zinc-500">
+                  Communication
+                </p>
+
+                <p className="mt-1 font-semibold text-white">
+                  Level{" "}
+                  {project.communicationRequired ||
+                    3}
+                  /5
                 </p>
               </div>
             </div>
+          </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
-                <Mail size={18} />
+          {/* Recruiter */}
+
+          <div className="mt-8 border-t border-zinc-800 pt-8">
+            <h2 className="text-lg font-semibold text-white">
+              Recruiter
+            </h2>
+
+            <div className="mt-4 flex items-center gap-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
+                <User size={20} />
               </div>
 
               <div>
-                <p className="text-xs text-zinc-500">
-                  Email
+                <p className="font-medium text-white">
+                  {project.createdBy?.name ||
+                    "Recruiter"}
                 </p>
 
-                <p className="break-all text-sm text-white">
+                <p className="text-sm text-zinc-500">
                   {project.createdBy?.email ||
                     "Email unavailable"}
                 </p>
               </div>
             </div>
           </div>
-        </section>
+        </div>
       </div>
     </StudentDashboardLayout>
   );

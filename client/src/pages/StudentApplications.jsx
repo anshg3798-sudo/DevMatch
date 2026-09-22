@@ -217,7 +217,147 @@ const StudentApplications = () => {
                       %
                     </p>
                   </div>
+                 {/* Compatibility Breakdown */}
 
+{application.compatibilityBreakdown && (
+  <div className="mt-6 border-t border-zinc-800 pt-5">
+    <p className="text-sm font-medium text-zinc-300">
+      Compatibility Breakdown
+    </p>
+
+    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+
+      {/* Skills */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+        <p className="text-xs text-zinc-500">
+          Skills
+        </p>
+
+        <p className="mt-1 text-xl font-semibold text-white">
+          {application.compatibilityBreakdown.skills ?? 0}%
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-600">
+          Weight: 40%
+        </p>
+      </div>
+
+      {/* Availability */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+        <p className="text-xs text-zinc-500">
+          Availability
+        </p>
+
+        <p className="mt-1 text-xl font-semibold text-white">
+          {application.compatibilityBreakdown.availability ?? 0}%
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-600">
+          Weight: 20%
+        </p>
+      </div>
+
+      {/* Experience */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+        <p className="text-xs text-zinc-500">
+          Experience
+        </p>
+
+        <p className="mt-1 text-xl font-semibold text-white">
+          {application.compatibilityBreakdown.experience ?? 0}%
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-600">
+          Weight: 15%
+        </p>
+      </div>
+
+      {/* Communication */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+        <p className="text-xs text-zinc-500">
+          Communication
+        </p>
+
+        <p className="mt-1 text-xl font-semibold text-white">
+          {application.compatibilityBreakdown.communication ?? 0}%
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-600">
+          Weight: 15%
+        </p>
+      </div>
+
+      {/* Projects */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+        <p className="text-xs text-zinc-500">
+          Projects
+        </p>
+
+        <p className="mt-1 text-xl font-semibold text-white">
+          {application.compatibilityBreakdown.projects ?? 0}%
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-600">
+          Weight: 10%
+        </p>
+      </div>
+
+    </div>
+  </div>
+)} 
+{/* Skill Match Details */}
+
+<div className="mt-5 grid gap-5 border-t border-zinc-800 pt-5 md:grid-cols-2">
+
+  {/* Matched Skills */}
+  <div>
+    <p className="text-sm font-medium text-emerald-400">
+      Your Matched Skills
+    </p>
+
+    <div className="mt-3 flex flex-wrap gap-2">
+      {(application.matchedSkills || []).length > 0 ? (
+        application.matchedSkills.map((skill, index) => (
+          <span
+            key={`${skill}-${index}`}
+            className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400"
+          >
+            {skill}
+          </span>
+        ))
+      ) : (
+        <span className="text-sm text-zinc-500">
+          No matched skills
+        </span>
+      )}
+    </div>
+  </div>
+
+  {/* Missing Skills */}
+  <div>
+    <p className="text-sm font-medium text-red-400">
+      Missing Skills
+    </p>
+
+    <div className="mt-3 flex flex-wrap gap-2">
+      {(application.missingSkills || []).length > 0 ? (
+        application.missingSkills.map((skill, index) => (
+          <span
+            key={`${skill}-${index}`}
+            className="rounded-lg bg-red-500/10 px-3 py-1.5 text-xs text-red-400"
+          >
+            {skill}
+          </span>
+        ))
+      ) : (
+        <span className="text-sm text-zinc-500">
+          No missing skills
+        </span>
+      )}
+    </div>
+  </div>
+
+</div>
                   {/* Required skills */}
 
                   <div>

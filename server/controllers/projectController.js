@@ -1,20 +1,26 @@
 // controllers/projectController.js
 
 const Project = require("../models/Project");
-
+const Application = require("../models/Application");
 const createProject = async (req, res) => {
     try {
 
         const {
             title,
             description,
-            requiredSkills
+            requiredSkills,
+            experienceRequired,
+            availabilityRequired,
+            communicationRequired
         } = req.body;
 
         const project = await Project.create({
             title,
             description,
             requiredSkills,
+            experienceRequired,
+            availabilityRequired,
+            communicationRequired,
             createdBy: req.user.id
         });
 
@@ -187,11 +193,66 @@ const getMyProjects = async (req, res) => {
         });
     }
 };
+const getRecruiterStats = async (req, res) => {
+  try {
+    const recruiterId = req.user.id;
+
+    // Get all projects created by this recruiter
+    const projects = await Project.find({
+      createdBy: recruiterId,
+    }).select("_id status");
+
+    const projectIds = projects.map(
+      (project) => project._id
+    );
+
+    // Total projects
+    const totalProjects = projects.length;
+
+    // Active projects
+    // If status exists, anything other than "closed"
+    // is considered active.
+    const activeProjects = projects.filter(
+      (project) =>
+        !project.status ||
+        project.status.toLowerCase() !== "closed"
+    ).length;
+
+    // Get applications for recruiter's projects
+    const applications = await Application.find({
+      project: { $in: projectIds },
+    }).select("status");
+
+    const totalApplications = applications.length;
+
+    // Accepted applications = developers hired
+    const developersHired = applications.filter(
+      (application) =>
+        application.status === "Accepted"
+    ).length;
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalProjects,
+        activeProjects,
+        totalApplications,
+        developersHired,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 module.exports = {
     createProject,
     getAllProjects,
      getMyProjects,
     getProjectById,
     updateProject,
-    deleteProject
+    deleteProject,
+    getRecruiterStats
 };

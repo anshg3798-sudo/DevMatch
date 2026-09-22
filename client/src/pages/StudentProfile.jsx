@@ -3,13 +3,16 @@ import { useEffect, useState } from "react";
 import {
   User,
   Mail,
+  Plus,
+  X,
   Code2,
+  Briefcase,
+  Clock,
+  MessageCircle,
+  FolderKanban,
   Save,
   Loader2,
   AlertCircle,
-  CheckCircle,
-  Plus,
-  X,
   ExternalLink,
 } from "lucide-react";
 
@@ -21,37 +24,64 @@ import {
 } from "../services/userService";
 
 const StudentProfile = () => {
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    skills: [],
-    github: "",
-    leetcode: "",
-  });
-
-  const [skillInput, setSkillInput] = useState("");
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+
+  const [skills, setSkills] = useState([]);
+  const [skillInput, setSkillInput] = useState("");
+
+  const [github, setGithub] = useState("");
+  const [leetcode, setLeetcode] = useState("");
+
+  const [experienceYears, setExperienceYears] =
+    useState(0);
+
+  const [availabilityHours, setAvailabilityHours] =
+    useState(0);
+
+  const [communicationRating, setCommunicationRating] =
+    useState(3);
+
+  const [projectsCount, setProjectsCount] =
+    useState(0);
+
   useEffect(() => {
-    const fetchProfile = async () => {
+    const loadProfile = async () => {
       try {
         setLoading(true);
         setError("");
 
         const data = await getProfile();
 
-        setProfile({
-          name: data.user?.name || "",
-          email: data.user?.email || "",
-          skills: data.user?.skills || [],
-          github: data.user?.github || "",
-          leetcode: data.user?.leetcode || "",
-        });
+        const user = data.user;
+
+        setName(user?.name || "");
+        setEmail(user?.email || "");
+        setSkills(user?.skills || []);
+        setGithub(user?.github || "");
+        setLeetcode(user?.leetcode || "");
+
+        setExperienceYears(
+          user?.experienceYears || 0
+        );
+
+        setAvailabilityHours(
+          user?.availabilityHours || 0
+        );
+
+        setCommunicationRating(
+          user?.communicationRating || 3
+        );
+
+        setProjectsCount(
+          user?.projectsCount || 0
+        );
       } catch (error) {
         console.error(
           "Failed to load profile:",
@@ -67,26 +97,17 @@ const StudentProfile = () => {
       }
     };
 
-    fetchProfile();
+    loadProfile();
   }, []);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setProfile((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
-
-  const handleAddSkill = () => {
+  const addSkill = () => {
     const skill = skillInput.trim();
 
     if (!skill) {
       return;
     }
 
-    const alreadyExists = profile.skills.some(
+    const alreadyExists = skills.some(
       (existingSkill) =>
         existingSkill.toLowerCase() ===
         skill.toLowerCase()
@@ -97,31 +118,26 @@ const StudentProfile = () => {
       return;
     }
 
-    setProfile((previous) => ({
-      ...previous,
-      skills: [...previous.skills, skill],
-    }));
-
+    setSkills([...skills, skill]);
     setSkillInput("");
   };
 
-  const handleRemoveSkill = (skillToRemove) => {
-    setProfile((previous) => ({
-      ...previous,
-      skills: previous.skills.filter(
+  const removeSkill = (skillToRemove) => {
+    setSkills(
+      skills.filter(
         (skill) => skill !== skillToRemove
-      ),
-    }));
+      )
+    );
   };
 
   const handleSkillKeyDown = (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      handleAddSkill();
+      addSkill();
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSave = async (event) => {
     event.preventDefault();
 
     try {
@@ -129,23 +145,24 @@ const StudentProfile = () => {
       setError("");
       setSuccess("");
 
-      const data = await updateProfile({
-        name: profile.name,
-        skills: profile.skills,
-        github: profile.github,
-        leetcode: profile.leetcode,
+      await updateProfile({
+        name,
+        skills,
+        github,
+        leetcode,
+        experienceYears: Number(experienceYears),
+        availabilityHours: Number(
+          availabilityHours
+        ),
+        communicationRating: Number(
+          communicationRating
+        ),
+        projectsCount: Number(projectsCount),
       });
 
-      setProfile({
-        name: data.user?.name || profile.name,
-        email: data.user?.email || profile.email,
-        skills: data.user?.skills || profile.skills,
-        github: data.user?.github || profile.github,
-        leetcode:
-          data.user?.leetcode || profile.leetcode,
-      });
-
-      setSuccess("Profile updated successfully.");
+      setSuccess(
+        "Profile updated successfully."
+      );
     } catch (error) {
       console.error(
         "Failed to update profile:",
@@ -170,7 +187,6 @@ const StudentProfile = () => {
               size={22}
               className="animate-spin"
             />
-
             Loading profile...
           </div>
         </div>
@@ -180,214 +196,309 @@ const StudentProfile = () => {
 
   return (
     <StudentDashboardLayout>
-      {/* Header */}
-
-      <div>
+      <div className="max-w-4xl">
         <h1 className="text-3xl font-bold text-white">
-          Profile
+          Developer Profile
         </h1>
 
         <p className="mt-2 text-zinc-400">
-          Keep your developer information and skills
-          up to date.
+          Keep your profile updated so DevMatch can
+          calculate accurate compatibility scores.
         </p>
-      </div>
 
-      {/* Messages */}
+        {error && (
+          <div className="mt-6 flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+            <AlertCircle size={20} />
+            <p>{error}</p>
+          </div>
+        )}
 
-      {error && (
-        <div className="mt-6 flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
-          <AlertCircle size={20} />
-          {error}
-        </div>
-      )}
+        {success && (
+          <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-400">
+            {success}
+          </div>
+        )}
 
-      {success && (
-        <div className="mt-6 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-400">
-          <CheckCircle size={20} />
-          {success}
-        </div>
-      )}
+        <form
+          onSubmit={handleSave}
+          className="mt-8 space-y-6"
+        >
+          {/* Basic Information */}
 
-      <form
-        onSubmit={handleSubmit}
-        className="mt-8 max-w-4xl"
-      >
-        {/* Basic Information */}
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+            <h2 className="text-xl font-semibold text-white">
+              Basic Information
+            </h2>
 
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <h2 className="text-xl font-semibold text-white">
-            Basic Information
-          </h2>
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm text-zinc-400">
+                  Name
+                </label>
 
-          <div className="mt-6 grid gap-5 md:grid-cols-2">
-            {/* Name */}
+                <div className="relative">
+                  <User
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                  />
 
-            <div>
-              <label className="text-sm text-zinc-400">
-                Name
-              </label>
-
-              <div className="relative mt-2">
-                <User
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-                />
-
-                <input
-                  name="name"
-                  value={profile.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-3 pl-10 pr-4 text-white outline-none transition focus:border-indigo-500"
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-
-            <div>
-              <label className="text-sm text-zinc-400">
-                Email
-              </label>
-
-              <div className="relative mt-2">
-                <Mail
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-                />
-
-                <input
-                  value={profile.email}
-                  disabled
-                  className="w-full cursor-not-allowed rounded-xl border border-zinc-800 bg-zinc-950 py-3 pl-10 pr-4 text-zinc-500"
-                />
+                  <input
+                    value={name}
+                    onChange={(event) =>
+                      setName(event.target.value)
+                    }
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-3 pl-10 pr-4 text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
               </div>
 
-              <p className="mt-2 text-xs text-zinc-600">
-                Email cannot be changed here.
-              </p>
+              <div>
+                <label className="mb-2 block text-sm text-zinc-400">
+                  Email
+                </label>
+
+                <div className="relative">
+                  <Mail
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
+                  />
+
+                  <input
+                    value={email}
+                    disabled
+                    className="w-full cursor-not-allowed rounded-xl border border-zinc-800 bg-zinc-900 py-3 pl-10 pr-4 text-zinc-500"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Skills */}
+          {/* Skills */}
 
-        <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <h2 className="text-xl font-semibold text-white">
-            Skills
-          </h2>
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+            <h2 className="text-xl font-semibold text-white">
+              Skills
+            </h2>
 
-          <p className="mt-1 text-sm text-zinc-500">
-            Add the technologies and skills you know.
-          </p>
+            <div className="mt-5 flex gap-3">
+              <input
+                value={skillInput}
+                onChange={(event) =>
+                  setSkillInput(event.target.value)
+                }
+                onKeyDown={handleSkillKeyDown}
+                placeholder="e.g. React"
+                className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+              />
 
-          <div className="mt-5 flex gap-3">
-            <input
-              value={skillInput}
-              onChange={(event) =>
-                setSkillInput(event.target.value)
-              }
-              onKeyDown={handleSkillKeyDown}
-              placeholder="e.g. React"
-              className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-500"
-            />
-
-            <button
-              type="button"
-              onClick={handleAddSkill}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-indigo-500"
-            >
-              <Plus size={17} />
-              Add
-            </button>
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            {profile.skills.map((skill) => (
-              <div
-                key={skill}
-                className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-sm text-zinc-300"
+              <button
+                type="button"
+                onClick={addSkill}
+                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-500"
               >
-                {skill}
+                <Plus size={18} />
+                Add
+              </button>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleRemoveSkill(skill)
-                  }
-                  className="text-zinc-500 transition hover:text-red-400"
+            <div className="mt-4 flex flex-wrap gap-2">
+              {skills.map((skill) => (
+                <span
+                  key={skill}
+                  className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 text-sm text-zinc-300"
                 >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+                  {skill}
 
-        {/* Developer Links */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      removeSkill(skill)
+                    }
+                    className="text-zinc-500 hover:text-red-400"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </section>
 
-        <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <h2 className="text-xl font-semibold text-white">
-            Developer Links
-          </h2>
+          {/* Compatibility Information */}
 
-          <div className="mt-6 space-y-5">
-            {/* GitHub */}
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+            <h2 className="text-xl font-semibold text-white">
+              Compatibility Information
+            </h2>
 
-            <div>
-              <label className="text-sm text-zinc-400">
-                GitHub
-              </label>
+            <p className="mt-2 text-sm text-zinc-500">
+              This information is used by DevMatch to
+              calculate your compatibility with projects.
+            </p>
 
-              <div className="relative mt-2">
-                <ExternalLink
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-                />
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              {/* Experience */}
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-zinc-400">
+                  <Briefcase size={16} />
+                  Experience
+                </label>
 
                 <input
-                  name="github"
-                  value={profile.github}
-                  onChange={handleChange}
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={experienceYears}
+                  onChange={(event) =>
+                    setExperienceYears(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                />
+
+                <p className="mt-2 text-xs text-zinc-600">
+                  Years of relevant experience
+                </p>
+              </div>
+
+              {/* Availability */}
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-zinc-400">
+                  <Clock size={16} />
+                  Weekly Availability
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  value={availabilityHours}
+                  onChange={(event) =>
+                    setAvailabilityHours(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                />
+
+                <p className="mt-2 text-xs text-zinc-600">
+                  Hours available per week
+                </p>
+              </div>
+
+              {/* Communication */}
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-zinc-400">
+                  <MessageCircle size={16} />
+                  Communication
+                </label>
+
+                <select
+                  value={communicationRating}
+                  onChange={(event) =>
+                    setCommunicationRating(
+                      Number(event.target.value)
+                    )
+                  }
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                >
+                  <option value={1}>
+                    1 - Beginner
+                  </option>
+
+                  <option value={2}>
+                    2 - Basic
+                  </option>
+
+                  <option value={3}>
+                    3 - Good
+                  </option>
+
+                  <option value={4}>
+                    4 - Very Good
+                  </option>
+
+                  <option value={5}>
+                    5 - Excellent
+                  </option>
+                </select>
+              </div>
+
+              {/* Projects */}
+
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-zinc-400">
+                  <FolderKanban size={16} />
+                  Relevant Projects
+                </label>
+
+                <input
+                  type="number"
+                  min="0"
+                  value={projectsCount}
+                  onChange={(event) =>
+                    setProjectsCount(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                />
+
+                <p className="mt-2 text-xs text-zinc-600">
+                  Number of relevant projects
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Links */}
+
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+            <h2 className="text-xl font-semibold text-white">
+              Developer Links
+            </h2>
+
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-zinc-400">
+                  <ExternalLink size={16} />
+                  GitHub
+                </label>
+
+                <input
+                  value={github}
+                  onChange={(event) =>
+                    setGithub(event.target.value)
+                  }
                   placeholder="https://github.com/username"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-3 pl-10 pr-4 text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
                 />
               </div>
-            </div>
 
-            {/* LeetCode */}
-
-            <div>
-              <label className="text-sm text-zinc-400">
-                LeetCode
-              </label>
-
-              <div className="relative mt-2">
-                <Code2
-                  size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
-                />
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm text-zinc-400">
+                  <Code2 size={16} />
+                  LeetCode
+                </label>
 
                 <input
-                  name="leetcode"
-                  value={profile.leetcode}
-                  onChange={handleChange}
+                  value={leetcode}
+                  onChange={(event) =>
+                    setLeetcode(event.target.value)
+                  }
                   placeholder="https://leetcode.com/username"
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-3 pl-10 pr-4 text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-500"
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Save */}
-
-        <div className="mt-6 flex justify-end">
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? (
               <>
@@ -395,19 +506,17 @@ const StudentProfile = () => {
                   size={18}
                   className="animate-spin"
                 />
-
                 Saving...
               </>
             ) : (
               <>
                 <Save size={18} />
-
-                Save Changes
+                Save Profile
               </>
             )}
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </StudentDashboardLayout>
   );
 };

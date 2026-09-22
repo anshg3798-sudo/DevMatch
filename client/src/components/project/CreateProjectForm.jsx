@@ -7,12 +7,21 @@ import { requiredSkills } from "../HowItWorks/requirementsData";
 
 const CreateProjectForm = () => {
   const navigate = useNavigate();
-
+  
   const [formData, setFormData] = useState({
     title: "",
     description: "",
   });
+   const [title, setTitle] = useState("");
+   const [description, setDescription] = useState("");
+ const [experienceRequired, setExperienceRequired] =
+  useState(0);
 
+const [availabilityRequired, setAvailabilityRequired] =
+  useState(0);
+
+const [communicationRequired, setCommunicationRequired] =
+  useState(3);
   const [skills, setSkills] = useState([]);
   const [skillInput, setSkillInput] = useState("");
 
@@ -86,6 +95,15 @@ const CreateProjectForm = () => {
       title: formData.title.trim(),
       description: formData.description.trim(),
       requiredSkills: skills,
+      experienceRequired: Number(experienceRequired),
+
+      availabilityRequired: Number(
+     availabilityRequired
+),
+
+     communicationRequired: Number(
+     communicationRequired
+),
     };
 
     await createProject(projectData);
@@ -233,6 +251,106 @@ const CreateProjectForm = () => {
 
         </div>
       </section>
+      {/* Compatibility Requirements */}
+
+<div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-5">
+
+  <h3 className="text-lg font-semibold text-white">
+    Compatibility Requirements
+  </h3>
+
+  <p className="mt-1 text-sm text-zinc-500">
+    These requirements will be used by DevMatch to
+    calculate developer compatibility.
+  </p>
+
+  <div className="mt-5 grid gap-5 md:grid-cols-3">
+
+    {/* Experience */}
+
+    <div>
+      <label className="mb-2 block text-sm text-zinc-400">
+        Minimum Experience
+      </label>
+
+      <input
+        type="number"
+        min="0"
+        step="0.5"
+        value={experienceRequired}
+        onChange={(e) =>
+          setExperienceRequired(e.target.value)
+        }
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
+      />
+
+      <p className="mt-1 text-xs text-zinc-600">
+        Years
+      </p>
+    </div>
+
+    {/* Availability */}
+
+    <div>
+      <label className="mb-2 block text-sm text-zinc-400">
+        Required Availability
+      </label>
+
+      <input
+        type="number"
+        min="0"
+        value={availabilityRequired}
+        onChange={(e) =>
+          setAvailabilityRequired(e.target.value)
+        }
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
+      />
+
+      <p className="mt-1 text-xs text-zinc-600">
+        Hours per week
+      </p>
+    </div>
+
+    {/* Communication */}
+
+    <div>
+      <label className="mb-2 block text-sm text-zinc-400">
+        Communication Level
+      </label>
+
+      <select
+        value={communicationRequired}
+        onChange={(e) =>
+          setCommunicationRequired(
+            Number(e.target.value)
+          )
+        }
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
+      >
+        <option value={1}>
+          1 - Beginner
+        </option>
+
+        <option value={2}>
+          2 - Basic
+        </option>
+
+        <option value={3}>
+          3 - Good
+        </option>
+
+        <option value={4}>
+          4 - Very Good
+        </option>
+
+        <option value={5}>
+          5 - Excellent
+        </option>
+      </select>
+    </div>
+
+  </div>
+</div>
 
       {/* Error */}
 
