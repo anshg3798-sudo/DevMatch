@@ -65,6 +65,32 @@ projectsCount: {
   default: 0,
   min: 0,
 },
+projects: [
+  {
+    name: {
+      type: String,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    technologies: {
+      type: [String],
+      default: [],
+    },
+    githubUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    liveUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+],
   },
   {
     timestamps: true,

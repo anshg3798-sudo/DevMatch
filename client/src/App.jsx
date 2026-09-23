@@ -19,6 +19,7 @@ import StudentApplications from "./pages/StudentApplications";
 import StudentProfile from "./pages/StudentProfile";
 import SearchDevelopers from "./pages/SearchDevelopers";
 import DeveloperDetails from "./pages/DeveloperDetails";
+
 function App() {
     return (
         <BrowserRouter>

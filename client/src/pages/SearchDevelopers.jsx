@@ -17,7 +17,9 @@ import { searchDevelopers } from "../services/userService";
 const SearchDevelopers = () => {
   const [search, setSearch] = useState("");
   const [developers, setDevelopers] = useState([]);
-
+  const [minExperience, setMinExperience] = useState("");
+const [minAvailability, setMinAvailability] = useState("");
+const [skillFilter, setSkillFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -44,6 +46,7 @@ const SearchDevelopers = () => {
     }
   };
 
+
   useEffect(() => {
     fetchDevelopers();
   }, []);
@@ -55,11 +58,33 @@ const SearchDevelopers = () => {
   };
 
   const handleClear = () => {
-    setSearch("");
-
-    fetchDevelopers("");
+  setSearch("");
+  setMinExperience("");
+  setMinAvailability("");
+  setSkillFilter("");
+  fetchDevelopers("");
   };
+  const filteredDevelopers = developers.filter((developer) => {
+  const experienceMatch =
+    minExperience === "" ||
+    (developer.experienceYears ?? 0) >= Number(minExperience);
 
+  const availabilityMatch =
+    minAvailability === "" ||
+    (developer.availabilityHours ?? 0) >= Number(minAvailability);
+
+  const skillMatch =
+    skillFilter === "" ||
+    (developer.skills || []).some((skill) =>
+      skill.toLowerCase().includes(skillFilter.toLowerCase())
+    );
+
+  return (
+    experienceMatch &&
+    availabilityMatch &&
+    skillMatch
+  );
+});
   return (
     <DashboardLayout>
       {/* Header */}
@@ -114,7 +139,40 @@ const SearchDevelopers = () => {
           </button>
         )}
       </form>
+      {/* Filters */}
 
+<div className="mt-4 grid gap-3 md:grid-cols-3">
+
+  {/* Minimum Experience */}
+  <input
+    type="number"
+    min="0"
+    placeholder="Minimum experience (years)"
+    value={minExperience}
+    onChange={(e) => setMinExperience(e.target.value)}
+    className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-indigo-500"
+  />
+
+  {/* Minimum Availability */}
+  <input
+    type="number"
+    min="0"
+    placeholder="Minimum availability (hrs/week)"
+    value={minAvailability}
+    onChange={(e) => setMinAvailability(e.target.value)}
+    className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-indigo-500"
+  />
+
+  {/* Skill */}
+  <input
+    type="text"
+    placeholder="Filter by skill..."
+    value={skillFilter}
+    onChange={(e) => setSkillFilter(e.target.value)}
+    className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-indigo-500"
+  />
+
+</div>
       {/* Error */}
 
       {error && (
@@ -131,8 +189,8 @@ const SearchDevelopers = () => {
         <div className="mt-8 flex items-center gap-2 text-sm text-zinc-500">
           <Users size={17} />
 
-          {developers.length} developer
-          {developers.length !== 1 ? "s" : ""} found
+          {filteredDevelopers.length} developer
+          {filteredDevelopers.length !== 1 ? "s" : ""} found
         </div>
       )}
 
@@ -178,7 +236,7 @@ const SearchDevelopers = () => {
         !error &&
         developers.length > 0 && (
           <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {developers.map((developer) => (
+            {filteredDevelopers.map((developer) => (
               <div
                 key={developer._id}
                 className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 transition hover:border-indigo-500/30"
@@ -227,7 +285,55 @@ const SearchDevelopers = () => {
                     )}
                   </div>
                 </div>
+          {/* Developer Stats */}
 
+<div className="mt-6 grid grid-cols-2 gap-3">
+
+  {/* Experience */}
+  <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-3">
+    <p className="text-xs text-zinc-500">
+      Experience
+    </p>
+
+    <p className="mt-1 text-sm font-semibold text-white">
+      {developer.experienceYears ?? 0} years
+    </p>
+  </div>
+
+  {/* Availability */}
+  <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-3">
+    <p className="text-xs text-zinc-500">
+      Availability
+    </p>
+
+    <p className="mt-1 text-sm font-semibold text-white">
+      {developer.availabilityHours ?? 0} hrs/week
+    </p>
+  </div>
+
+  {/* Communication */}
+  <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-3">
+    <p className="text-xs text-zinc-500">
+      Communication
+    </p>
+
+    <p className="mt-1 text-sm font-semibold text-white">
+      {developer.communicationRating ?? 3}/5
+    </p>
+  </div>
+
+  {/* Projects */}
+  <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-3">
+    <p className="text-xs text-zinc-500">
+      Projects
+    </p>
+
+    <p className="mt-1 text-sm font-semibold text-white">
+      {developer.projectsCount ?? 0}
+    </p>
+  </div>
+
+</div> 
                 {/* Developer links */}
 
                {/* Developer links */}

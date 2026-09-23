@@ -9,6 +9,10 @@ import {
   ExternalLink,
   Loader2,
   AlertCircle,
+  Briefcase,
+  Clock,
+  MessageCircle,
+  FolderKanban,
 } from "lucide-react";
 
 import DashboardLayout from "../components/dashboard/DashboardLayout";
@@ -138,7 +142,73 @@ const DeveloperDetails = () => {
           </div>
         </div>
       </div>
+     {/* Developer Statistics */}
 
+<div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+  {/* Experience */}
+
+  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="flex items-center gap-2 text-zinc-500">
+      <Briefcase size={17} />
+      <span className="text-sm">
+        Experience
+      </span>
+    </div>
+
+    <p className="mt-3 text-xl font-semibold text-white">
+      {developer.experienceYears ?? 0} years
+    </p>
+  </div>
+
+  {/* Availability */}
+
+  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="flex items-center gap-2 text-zinc-500">
+      <Clock size={17} />
+      <span className="text-sm">
+        Availability
+      </span>
+    </div>
+
+    <p className="mt-3 text-xl font-semibold text-white">
+      {developer.availabilityHours ?? 0} hrs/week
+    </p>
+  </div>
+
+  {/* Communication */}
+
+  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="flex items-center gap-2 text-zinc-500">
+      <MessageCircle size={17} />
+      <span className="text-sm">
+        Communication
+      </span>
+    </div>
+
+    <p className="mt-3 text-xl font-semibold text-white">
+      {developer.communicationRating ?? 3}/5
+    </p>
+  </div>
+
+  {/* Projects */}
+
+  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div className="flex items-center gap-2 text-zinc-500">
+      <FolderKanban size={17} />
+      <span className="text-sm">
+        Projects
+      </span>
+    </div>
+
+    <p className="mt-3 text-xl font-semibold text-white">
+      {developer.projects?.length ??
+        developer.projectsCount ??
+        0}
+    </p>
+  </div>
+
+</div>
       {/* Main Content */}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -235,17 +305,131 @@ const DeveloperDetails = () => {
 
       {/* Future Section */}
 
-      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-        <h2 className="font-semibold text-white">
-          Developer Overview
-        </h2>
+     {/* Projects */}
 
-        <p className="mt-2 text-sm leading-6 text-zinc-500">
-          More developer information such as projects,
-          applications, experience, and compatibility
-          details can be added here later.
-        </p>
-      </div>
+<div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+
+  <div className="flex items-center gap-3">
+
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+      <FolderKanban size={20} />
+    </div>
+
+    <div>
+      <h2 className="font-semibold text-white">
+        Projects
+      </h2>
+
+      <p className="text-sm text-zinc-500">
+        Projects provided by this developer
+      </p>
+    </div>
+
+  </div>
+
+  {developer.projects?.length > 0 ? (
+    <div className="mt-6 grid gap-5 lg:grid-cols-2">
+
+      {developer.projects.map(
+        (project, index) => (
+          <div
+            key={index}
+            className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5"
+          >
+
+            {/* Project Header */}
+
+            <h3 className="text-lg font-semibold text-white">
+              {project.name}
+            </h3>
+
+            {/* Description */}
+
+            <p className="mt-3 text-sm leading-6 text-zinc-400">
+              {project.description}
+            </p>
+
+            {/* Technologies */}
+
+            {project.technologies?.length > 0 && (
+              <div className="mt-4">
+
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-600">
+                  Technologies
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+
+                  {project.technologies.map(
+                    (technology, technologyIndex) => (
+                      <span
+                        key={`${technology}-${technologyIndex}`}
+                        className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300"
+                      >
+                        {technology}
+                      </span>
+                    )
+                  )}
+
+                </div>
+
+              </div>
+            )}
+
+            {/* Project Links */}
+
+            {(project.githubUrl ||
+              project.liveUrl) && (
+              <div className="mt-5 flex flex-wrap gap-3 border-t border-zinc-800 pt-4">
+
+                {project.githubUrl && (
+                  <a
+                    href={project.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+                  >
+                    <ExternalLink size={16} />
+                    GitHub Repository
+                  </a>
+                )}
+
+                {project.liveUrl && (
+                  <a
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+                  >
+                    <ExternalLink size={16} />
+                    Live Demo
+                  </a>
+                )}
+
+              </div>
+            )}
+
+          </div>
+        )
+      )}
+
+    </div>
+  ) : (
+    <div className="mt-6 rounded-xl border border-dashed border-zinc-800 p-8 text-center">
+
+      <FolderKanban
+        size={28}
+        className="mx-auto text-zinc-600"
+      />
+
+      <p className="mt-3 text-sm text-zinc-500">
+        This developer has not added any projects yet.
+      </p>
+
+    </div>
+  )}
+
+</div> 
     </DashboardLayout>
   );
 };

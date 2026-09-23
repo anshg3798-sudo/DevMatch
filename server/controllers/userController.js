@@ -37,6 +37,7 @@ const updateProfile = async (req, res) => {
   communicationRating,
   availabilityHours,
   projectsCount,
+  projects,
 } = req.body;
 
     const user = await User.findById(req.user.id);
@@ -102,6 +103,9 @@ if (availabilityHours !== undefined) {
 if (projectsCount !== undefined) {
   user.projectsCount = Number(projectsCount);
 }
+if (projects !== undefined) {
+  user.projects = projects;
+}
     await user.save();
 
     res.json({
@@ -119,6 +123,7 @@ if (projectsCount !== undefined) {
   communicationRating: user.communicationRating,
   availabilityHours: user.availabilityHours,
   projectsCount: user.projectsCount,
+  projects: user.projects,
 },
     });
   } catch (error) {

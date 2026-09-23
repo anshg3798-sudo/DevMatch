@@ -50,7 +50,17 @@ const StudentProfile = () => {
 
   const [projectsCount, setProjectsCount] =
     useState(0);
+  const [projects, setProjects] = useState([]);
 
+const [projectName, setProjectName] = useState("");
+const [projectDescription, setProjectDescription] =
+  useState("");
+const [projectTechnologies, setProjectTechnologies] =
+  useState("");
+const [projectGithub, setProjectGithub] =
+  useState("");
+const [projectLive, setProjectLive] =
+  useState("");
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -82,6 +92,7 @@ const StudentProfile = () => {
         setProjectsCount(
           user?.projectsCount || 0
         );
+        setProjects(user?.projects || []);
       } catch (error) {
         console.error(
           "Failed to load profile:",
@@ -136,7 +147,49 @@ const StudentProfile = () => {
       addSkill();
     }
   };
+  const addProject = () => {
+  if (!projectName.trim()) {
+    setError("Project name is required.");
+    return;
+  }
 
+  if (!projectDescription.trim()) {
+    setError("Project description is required.");
+    return;
+  }
+
+  const technologies = projectTechnologies
+    .split(",")
+    .map((technology) => technology.trim())
+    .filter(Boolean);
+
+  const newProject = {
+    name: projectName.trim(),
+    description: projectDescription.trim(),
+    technologies,
+    githubUrl: projectGithub.trim(),
+    liveUrl: projectLive.trim(),
+  };
+
+  setProjects((previousProjects) => [
+    ...previousProjects,
+    newProject,
+  ]);
+
+  setProjectName("");
+  setProjectDescription("");
+  setProjectTechnologies("");
+  setProjectGithub("");
+  setProjectLive("");
+  setError("");
+};
+const removeProject = (indexToRemove) => {
+  setProjects((previousProjects) =>
+    previousProjects.filter(
+      (_, index) => index !== indexToRemove
+    )
+  );
+};
   const handleSave = async (event) => {
     event.preventDefault();
 
@@ -158,6 +211,7 @@ const StudentProfile = () => {
           communicationRating
         ),
         projectsCount: Number(projectsCount),
+        projects,
       });
 
       setSuccess(
@@ -452,7 +506,181 @@ const StudentProfile = () => {
               </div>
             </div>
           </section>
+           {/* Projects */}
 
+<section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+  <div>
+    <h2 className="text-xl font-semibold text-white">
+      Projects
+    </h2>
+
+    <p className="mt-2 text-sm text-zinc-500">
+      Add projects that demonstrate your skills and experience.
+    </p>
+  </div>
+
+  {/* Existing Projects */}
+
+  {projects.length > 0 && (
+    <div className="mt-6 space-y-4">
+      {projects.map((project, index) => (
+        <div
+          key={index}
+          className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                {project.name}
+              </h3>
+
+              <p className="mt-2 text-sm leading-6 text-zinc-400">
+                {project.description}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => removeProject(index)}
+              className="text-zinc-500 hover:text-red-400"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Technologies */}
+
+          {project.technologies?.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {project.technologies.map(
+                (technology) => (
+                  <span
+                    key={technology}
+                    className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300"
+                  >
+                    {technology}
+                  </span>
+                )
+              )}
+            </div>
+          )}
+
+          {/* Project Links */}
+
+          <div className="mt-4 flex flex-wrap gap-4">
+            {project.githubUrl && (
+              <a
+                href={project.githubUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-indigo-400 hover:text-indigo-300"
+              >
+                GitHub →
+              </a>
+            )}
+
+            {project.liveUrl && (
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-emerald-400 hover:text-emerald-300"
+              >
+                Live Demo →
+              </a>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  {/* Add Project Form */}
+
+  <div className="mt-6 border-t border-zinc-800 pt-6">
+
+    <h3 className="text-sm font-medium text-zinc-300">
+      Add a Project
+    </h3>
+
+    <div className="mt-4 space-y-4">
+
+      {/* Project Name */}
+
+      <input
+        value={projectName}
+        onChange={(event) =>
+          setProjectName(event.target.value)
+        }
+        placeholder="Project name"
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-indigo-500"
+      />
+
+      {/* Description */}
+
+      <textarea
+        value={projectDescription}
+        onChange={(event) =>
+          setProjectDescription(
+            event.target.value
+          )
+        }
+        placeholder="Describe what you built and what problem it solves..."
+        rows={4}
+        className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-indigo-500"
+      />
+
+      {/* Technologies */}
+
+      <input
+        value={projectTechnologies}
+        onChange={(event) =>
+          setProjectTechnologies(
+            event.target.value
+          )
+        }
+        placeholder="Technologies (e.g. React, Node.js, MongoDB)"
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-indigo-500"
+      />
+
+      <p className="text-xs text-zinc-600">
+        Separate technologies with commas.
+      </p>
+
+      {/* GitHub */}
+
+      <input
+        value={projectGithub}
+        onChange={(event) =>
+          setProjectGithub(event.target.value)
+        }
+        placeholder="GitHub repository URL"
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-indigo-500"
+      />
+
+      {/* Live Demo */}
+
+      <input
+        value={projectLive}
+        onChange={(event) =>
+          setProjectLive(event.target.value)
+        }
+        placeholder="Live demo URL (optional)"
+        className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-indigo-500"
+      />
+
+      <button
+        type="button"
+        onClick={addProject}
+        className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-5 py-3 font-medium text-white hover:bg-zinc-700"
+      >
+        <Plus size={18} />
+        Add Project
+      </button>
+
+    </div>
+  </div>
+</section>
           {/* Links */}
 
           <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
