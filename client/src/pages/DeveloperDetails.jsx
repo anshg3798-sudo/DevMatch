@@ -13,6 +13,7 @@ import {
   Clock,
   MessageCircle,
   FolderKanban,
+  FileText,
 } from "lucide-react";
 
 import DashboardLayout from "../components/dashboard/DashboardLayout";
@@ -305,6 +306,78 @@ const DeveloperDetails = () => {
 
       {/* Future Section */}
 
+      
+     {/* Resume / CV */}
+
+<div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+
+  <div className="flex items-center gap-3">
+
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+      <FileText size={20} />
+    </div>
+
+    <div>
+      <h2 className="font-semibold text-white">
+        Resume / CV
+      </h2>
+
+      <p className="text-sm text-zinc-500">
+        Candidate's uploaded resume
+      </p>
+    </div>
+
+  </div>
+
+  {developer.resumeUrl ? (
+    <div className="mt-5 flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+
+      <div className="flex items-center gap-3">
+
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
+          <FileText size={20} />
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-white">
+            {developer.resumeFileName ||
+              "Resume.pdf"}
+          </p>
+
+          <p className="mt-1 text-xs text-zinc-500">
+            PDF Resume
+          </p>
+        </div>
+
+      </div>
+
+      <a
+        href={`http://localhost:5000${developer.resumeUrl}`}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
+      >
+        <ExternalLink size={16} />
+        View Resume
+      </a>
+
+    </div>
+  ) : (
+    <div className="mt-5 rounded-xl border border-dashed border-zinc-800 p-6 text-center">
+
+      <FileText
+        size={28}
+        className="mx-auto text-zinc-600"
+      />
+
+      <p className="mt-3 text-sm text-zinc-500">
+        This developer has not uploaded a resume yet.
+      </p>
+
+    </div>
+  )}
+
+</div>
      {/* Projects */}
 
 <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">

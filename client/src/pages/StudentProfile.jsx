@@ -14,6 +14,7 @@ import {
   Loader2,
   AlertCircle,
   ExternalLink,
+  FileText,
 } from "lucide-react";
 
 import StudentDashboardLayout from "../components/dashboard/StudentDashboardLayout";
@@ -21,6 +22,7 @@ import StudentDashboardLayout from "../components/dashboard/StudentDashboardLayo
 import {
   getProfile,
   updateProfile,
+  uploadResume,
 } from "../services/userService";
 
 const StudentProfile = () => {
@@ -61,6 +63,17 @@ const [projectGithub, setProjectGithub] =
   useState("");
 const [projectLive, setProjectLive] =
   useState("");
+  const [resumeUrl, setResumeUrl] =
+  useState("");
+
+const [resumeFileName, setResumeFileName] =
+  useState("");
+
+const [resumeFile, setResumeFile] =
+  useState(null);
+
+const [uploadingResume, setUploadingResume] =
+  useState(false);
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -93,6 +106,8 @@ const [projectLive, setProjectLive] =
           user?.projectsCount || 0
         );
         setProjects(user?.projects || []);
+        setResumeUrl(user?.resumeUrl || "");
+        setResumeFileName(user?.resumeFileName || "");
       } catch (error) {
         console.error(
           "Failed to load profile:",
@@ -189,6 +204,56 @@ const removeProject = (indexToRemove) => {
       (_, index) => index !== indexToRemove
     )
   );
+};
+ const handleResumeUpload = async () => {
+  
+
+  if (!resumeFile) {
+    setError("Please select a PDF resume.");
+    return;
+  }
+
+  if (
+    resumeFile.type !== "application/pdf" &&
+    !resumeFile.name.toLowerCase().endsWith(".pdf")
+  ) {
+    setError("Only PDF files are allowed.");
+    return;
+  }
+
+  if (resumeFile.size > 5 * 1024 * 1024) {
+    setError("Resume must be smaller than 5 MB.");
+    return;
+  }
+
+  try {
+    setUploadingResume(true);
+    setError("");
+    setSuccess("");
+
+    const data = await uploadResume(resumeFile);
+
+    setResumeUrl(data.resumeUrl || "");
+    setResumeFileName(
+      data.resumeFileName || resumeFile.name
+    );
+
+    setResumeFile(null);
+
+    setSuccess("Resume uploaded successfully.");
+  } catch (error) {
+    console.error(
+      "Failed to upload resume:",
+      error
+    );
+
+    setError(
+      error.response?.data?.message ||
+        "Failed to upload resume."
+    );
+  } finally {
+    setUploadingResume(false);
+  }
 };
   const handleSave = async (event) => {
     event.preventDefault();
@@ -681,6 +746,136 @@ const removeProject = (indexToRemove) => {
     </div>
   </div>
 </section>
+{/* Resume */}
+
+<section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+
+  <div className="flex items-center gap-3">
+
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+      <FileText size={20} />
+    </div>
+
+    <div>
+      <h2 className="text-xl font-semibold text-white">
+        Resume / CV
+      </h2>
+
+      <p className="mt-1 text-sm text-zinc-500">
+        Upload your latest resume as a PDF.
+      </p>
+    </div>
+
+  </div>
+
+  {/* Existing Resume */}
+
+  {resumeFileName && (
+    <div className="mt-6 flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+
+      <div className="flex items-center gap-3">
+
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
+          <FileText size={20} />
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-white">
+            {resumeFileName}
+          </p>
+
+          <p className="mt-1 text-xs text-zinc-500">
+            PDF Resume
+          </p>
+        </div>
+
+      </div>
+
+      {resumeUrl && (
+        <a
+          href={`http://localhost:5000${resumeUrl}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+        >
+          <ExternalLink size={16} />
+          View Resume
+        </a>
+      )}
+
+    </div>
+  )}
+
+  {/* Upload */}
+
+  <div className="mt-6 border-t border-zinc-800 pt-6">
+
+    <label className="block text-sm font-medium text-zinc-300">
+      {resumeFileName
+        ? "Replace Resume"
+        : "Upload Resume"}
+    </label>
+
+    <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+
+      <input
+  id="resume"
+  name="resume"
+  type="file"
+  accept=".pdf,application/pdf"
+  onChange={(event) => {
+    // ye bhot important line hain
+    const file = event.target.files?.[0];
+
+    
+
+    if (!file) {
+      setResumeFile(null);
+      return;
+    }
+
+    setResumeFile(file);
+    setError("");
+  }}
+  className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-400 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-800 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-700"
+/>
+
+      <button
+        type="button"
+        onClick={handleResumeUpload}
+        disabled={
+          !resumeFile || uploadingResume
+        }
+        className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {uploadingResume ? (
+          <>
+            <Loader2
+              size={18}
+              className="animate-spin"
+            />
+            Uploading...
+          </>
+        ) : (
+          <>
+            <FileText size={18} />
+            {resumeFileName
+              ? "Replace Resume"
+              : "Upload Resume"}
+          </>
+        )}
+      </button>
+
+    </div>
+
+    <p className="mt-2 text-xs text-zinc-600">
+      PDF only • Maximum size 5 MB
+    </p>
+
+  </div>
+
+</section>
+
           {/* Links */}
 
           <section className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">

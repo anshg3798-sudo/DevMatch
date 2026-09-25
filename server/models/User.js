@@ -91,6 +91,15 @@ projects: [
     },
   },
 ],
+resumeUrl: {
+  type: String,
+  default: "",
+},
+
+resumeFileName: {
+  type: String,
+  default: "",
+},
   },
   {
     timestamps: true,

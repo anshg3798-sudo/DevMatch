@@ -7,8 +7,11 @@ const {
   updateProfile,
    searchDevelopers,
    getDeveloperById,
+    uploadResume,
 } = require("../controllers/userController");
-
+const resumeUpload = require(
+  "../middleware/resumeUpload"
+);
 const authMiddleware = require("../middleware/authMiddleware");
 const { isRecruiter } = require("../middleware/roleMiddleware");
 router.get(
@@ -22,6 +25,12 @@ router.get(
   isRecruiter,
   searchDevelopers
 );
+router.post(
+  "/resume",
+  authMiddleware,
+  resumeUpload.single("resume"),
+  uploadResume
+);
 router.get(
   "/developers/:id",
   authMiddleware,
@@ -33,5 +42,4 @@ router.patch(
   authMiddleware,
   updateProfile
 );
-
 module.exports = router;

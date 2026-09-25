@@ -1,5 +1,6 @@
 const User = require("../models/User");
-
+const fs = require("fs");
+const path = require("path");
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -203,9 +204,72 @@ const getDeveloperById = async (req, res) => {
     });
   }
 };
+const uploadResume = async (req, res) => {
+  try {
+  
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select a PDF resume.",
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Delete previous resume if one exists
+    if (user.resumeUrl) {
+      const oldFileName = path.basename(
+        user.resumeUrl
+      );
+
+      const oldFilePath = path.join(
+        __dirname,
+        "../uploads/resumes",
+        oldFileName
+      );
+
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+    }
+
+    user.resumeUrl =
+      `/uploads/resumes/${req.file.filename}`;
+
+    user.resumeFileName =
+      req.file.originalname;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Resume uploaded successfully.",
+      resumeUrl: user.resumeUrl,
+      resumeFileName: user.resumeFileName,
+    });
+  } catch (error) {
+    console.error(
+      "Resume upload error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to upload resume.",
+    });
+  }
+};
 module.exports = {
   getProfile,
   updateProfile,
   searchDevelopers,
   getDeveloperById,
+  uploadResume,
 };
