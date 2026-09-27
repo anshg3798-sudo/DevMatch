@@ -9,11 +9,13 @@ import {
   ExternalLink,
   Loader2,
   AlertCircle,
+  CheckCircle2,
+  XCircle,
+  FileText,
   Briefcase,
   Clock,
-  MessageCircle,
-  FolderKanban,
-  FileText,
+  MessageSquare,
+  FolderGit2,
 } from "lucide-react";
 
 import DashboardLayout from "../components/dashboard/DashboardLayout";
@@ -37,7 +39,10 @@ const DeveloperDetails = () => {
 
       setDeveloper(data.developer);
     } catch (error) {
-      console.error("Failed to load developer:", error);
+      console.error(
+        "Failed to load developer:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
@@ -51,6 +56,10 @@ const DeveloperDetails = () => {
   useEffect(() => {
     fetchDeveloper();
   }, [id]);
+
+  // -----------------------------
+  // LOADING
+  // -----------------------------
 
   if (loading) {
     return (
@@ -68,12 +77,18 @@ const DeveloperDetails = () => {
     );
   }
 
+  // -----------------------------
+  // ERROR
+  // -----------------------------
+
   if (error) {
     return (
       <DashboardLayout>
         <div className="mt-8">
           <button
-            onClick={() => navigate("/recruiter/search")}
+            onClick={() =>
+              navigate("/recruiter/search")
+            }
             className="mb-6 flex items-center gap-2 text-sm text-zinc-400 transition hover:text-white"
           >
             <ArrowLeft size={18} />
@@ -89,6 +104,10 @@ const DeveloperDetails = () => {
     );
   }
 
+  // -----------------------------
+  // DEVELOPER NOT FOUND
+  // -----------------------------
+
   if (!developer) {
     return (
       <DashboardLayout>
@@ -103,20 +122,30 @@ const DeveloperDetails = () => {
 
   return (
     <DashboardLayout>
-      {/* Back button */}
+
+      {/* ========================================= */}
+      {/* BACK */}
+      {/* ========================================= */}
 
       <button
-        onClick={() => navigate("/recruiter/search")}
+        onClick={() =>
+          navigate("/recruiter/search")
+        }
         className="mb-8 flex items-center gap-2 text-sm text-zinc-400 transition hover:text-white"
       >
         <ArrowLeft size={18} />
         Back to Developers
       </button>
 
-      {/* Profile Header */}
+
+      {/* ========================================= */}
+      {/* PROFILE HEADER */}
+      {/* ========================================= */}
 
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8">
+
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+
           {/* Avatar */}
 
           <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
@@ -125,7 +154,8 @@ const DeveloperDetails = () => {
 
           {/* Basic Information */}
 
-          <div>
+          <div className="min-w-0">
+
             <h1 className="text-3xl font-bold text-white">
               {developer.name}
             </h1>
@@ -135,374 +165,789 @@ const DeveloperDetails = () => {
               <span>{developer.email}</span>
             </div>
 
-            <div className="mt-2">
+            <div className="mt-3">
               <span className="rounded-lg bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-400">
                 Student / Developer
               </span>
             </div>
+
           </div>
+
         </div>
+
       </div>
-     {/* Developer Statistics */}
 
-<div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-  {/* Experience */}
+      {/* ========================================= */}
+      {/* DEVELOPER STATS */}
+      {/* ========================================= */}
 
-  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-    <div className="flex items-center gap-2 text-zinc-500">
-      <Briefcase size={17} />
-      <span className="text-sm">
-        Experience
-      </span>
-    </div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-    <p className="mt-3 text-xl font-semibold text-white">
-      {developer.experienceYears ?? 0} years
-    </p>
-  </div>
+        {/* Experience */}
 
-  {/* Availability */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
 
-  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-    <div className="flex items-center gap-2 text-zinc-500">
-      <Clock size={17} />
-      <span className="text-sm">
-        Availability
-      </span>
-    </div>
-
-    <p className="mt-3 text-xl font-semibold text-white">
-      {developer.availabilityHours ?? 0} hrs/week
-    </p>
-  </div>
-
-  {/* Communication */}
-
-  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-    <div className="flex items-center gap-2 text-zinc-500">
-      <MessageCircle size={17} />
-      <span className="text-sm">
-        Communication
-      </span>
-    </div>
-
-    <p className="mt-3 text-xl font-semibold text-white">
-      {developer.communicationRating ?? 3}/5
-    </p>
-  </div>
-
-  {/* Projects */}
-
-  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
-    <div className="flex items-center gap-2 text-zinc-500">
-      <FolderKanban size={17} />
-      <span className="text-sm">
-        Projects
-      </span>
-    </div>
-
-    <p className="mt-3 text-xl font-semibold text-white">
-      {developer.projects?.length ??
-        developer.projectsCount ??
-        0}
-    </p>
-  </div>
-
-</div>
-      {/* Main Content */}
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        {/* Skills */}
-
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
-              <Code2 size={20} />
-            </div>
 
-            <div>
-              <h2 className="font-semibold text-white">
-                Skills
-              </h2>
+            <Briefcase
+              size={20}
+              className="text-indigo-400"
+            />
 
-              <p className="text-sm text-zinc-500">
-                Technical skills of this developer
-              </p>
-            </div>
+            <span className="text-sm text-zinc-500">
+              Experience
+            </span>
+
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-2">
-            {developer.skills?.length > 0 ? (
-              developer.skills.map((skill, index) => (
+          <p className="mt-3 text-xl font-semibold text-white">
+            {developer.experienceYears || 0} years
+          </p>
+
+        </div>
+
+
+        {/* Availability */}
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+
+          <div className="flex items-center gap-3">
+
+            <Clock
+              size={20}
+              className="text-indigo-400"
+            />
+
+            <span className="text-sm text-zinc-500">
+              Availability
+            </span>
+
+          </div>
+
+          <p className="mt-3 text-xl font-semibold text-white">
+            {developer.availabilityHours || 0} hrs/week
+          </p>
+
+        </div>
+
+
+        {/* Communication */}
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+
+          <div className="flex items-center gap-3">
+
+            <MessageSquare
+              size={20}
+              className="text-indigo-400"
+            />
+
+            <span className="text-sm text-zinc-500">
+              Communication
+            </span>
+
+          </div>
+
+          <p className="mt-3 text-xl font-semibold text-white">
+            {developer.communicationRating || 3}/5
+          </p>
+
+        </div>
+
+
+        {/* Projects */}
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+
+          <div className="flex items-center gap-3">
+
+            <FolderGit2
+              size={20}
+              className="text-indigo-400"
+            />
+
+            <span className="text-sm text-zinc-500">
+              Projects
+            </span>
+
+          </div>
+
+          <p className="mt-3 text-xl font-semibold text-white">
+            {developer.projects?.length ||
+              developer.projectsCount ||
+              0}
+          </p>
+
+        </div>
+
+      </div>
+
+
+      {/* ========================================= */}
+      {/* SKILLS */}
+      {/* ========================================= */}
+
+      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+
+        <div className="flex items-center gap-3">
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+            <Code2 size={20} />
+          </div>
+
+          <div>
+
+            <h2 className="font-semibold text-white">
+              Skills
+            </h2>
+
+            <p className="text-sm text-zinc-500">
+              Technical skills of this developer
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div className="mt-6 flex flex-wrap gap-2">
+
+          {developer.skills?.length > 0 ? (
+
+            developer.skills.map(
+              (skill, index) => (
                 <span
                   key={`${skill}-${index}`}
                   className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-300"
                 >
                   {skill}
                 </span>
-              ))
-            ) : (
-              <p className="text-sm text-zinc-600">
-                No skills added yet.
-              </p>
-            )}
-          </div>
-        </div>
+              )
+            )
 
-        {/* Developer Links */}
+          ) : (
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
-              <ExternalLink size={20} />
-            </div>
-
-            <div>
-              <h2 className="font-semibold text-white">
-                Developer Links
-              </h2>
-
-              <p className="text-sm text-zinc-500">
-                External profiles and portfolios
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            {developer.github && (
-              <a
-                href={developer.github}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
-              >
-                <ExternalLink size={17} />
-                GitHub
-              </a>
-            )}
-
-            {developer.leetcode && (
-              <a
-                href={developer.leetcode}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
-              >
-                <Code2 size={17} />
-                LeetCode
-              </a>
-            )}
-
-            {!developer.github &&
-              !developer.leetcode && (
-                <p className="text-sm text-zinc-600">
-                  No external profiles added.
-                </p>
-              )}
-          </div>
-        </div>
-      </div>
-
-      {/* Future Section */}
-
-      
-     {/* Resume / CV */}
-
-<div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-
-  <div className="flex items-center gap-3">
-
-    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
-      <FileText size={20} />
-    </div>
-
-    <div>
-      <h2 className="font-semibold text-white">
-        Resume / CV
-      </h2>
-
-      <p className="text-sm text-zinc-500">
-        Candidate's uploaded resume
-      </p>
-    </div>
-
-  </div>
-
-  {developer.resumeUrl ? (
-    <div className="mt-5 flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-
-      <div className="flex items-center gap-3">
-
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-          <FileText size={20} />
-        </div>
-
-        <div>
-          <p className="text-sm font-medium text-white">
-            {developer.resumeFileName ||
-              "Resume.pdf"}
-          </p>
-
-          <p className="mt-1 text-xs text-zinc-500">
-            PDF Resume
-          </p>
-        </div>
-
-      </div>
-
-      <a
-        href={`http://localhost:5000${developer.resumeUrl}`}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
-      >
-        <ExternalLink size={16} />
-        View Resume
-      </a>
-
-    </div>
-  ) : (
-    <div className="mt-5 rounded-xl border border-dashed border-zinc-800 p-6 text-center">
-
-      <FileText
-        size={28}
-        className="mx-auto text-zinc-600"
-      />
-
-      <p className="mt-3 text-sm text-zinc-500">
-        This developer has not uploaded a resume yet.
-      </p>
-
-    </div>
-  )}
-
-</div>
-     {/* Projects */}
-
-<div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-
-  <div className="flex items-center gap-3">
-
-    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
-      <FolderKanban size={20} />
-    </div>
-
-    <div>
-      <h2 className="font-semibold text-white">
-        Projects
-      </h2>
-
-      <p className="text-sm text-zinc-500">
-        Projects provided by this developer
-      </p>
-    </div>
-
-  </div>
-
-  {developer.projects?.length > 0 ? (
-    <div className="mt-6 grid gap-5 lg:grid-cols-2">
-
-      {developer.projects.map(
-        (project, index) => (
-          <div
-            key={index}
-            className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5"
-          >
-
-            {/* Project Header */}
-
-            <h3 className="text-lg font-semibold text-white">
-              {project.name}
-            </h3>
-
-            {/* Description */}
-
-            <p className="mt-3 text-sm leading-6 text-zinc-400">
-              {project.description}
+            <p className="text-sm text-zinc-600">
+              No skills added yet.
             </p>
 
-            {/* Technologies */}
+          )}
 
-            {project.technologies?.length > 0 && (
-              <div className="mt-4">
+        </div>
 
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-600">
-                  Technologies
+      </div>
+
+
+      {/* ========================================= */}
+      {/* RESUME */}
+      {/* ========================================= */}
+
+      {developer.resumeUrl && (
+
+        <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+
+          <div className="flex items-center justify-between gap-4">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+                <FileText size={20} />
+              </div>
+
+              <div>
+
+                <h2 className="font-semibold text-white">
+                  Resume / CV
+                </h2>
+
+                <p className="text-sm text-zinc-500">
+                  Developer's latest resume
                 </p>
 
-                <div className="flex flex-wrap gap-2">
-
-                  {project.technologies.map(
-                    (technology, technologyIndex) => (
-                      <span
-                        key={`${technology}-${technologyIndex}`}
-                        className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300"
-                      >
-                        {technology}
-                      </span>
-                    )
-                  )}
-
-                </div>
-
               </div>
-            )}
 
-            {/* Project Links */}
+            </div>
 
-            {(project.githubUrl ||
-              project.liveUrl) && (
-              <div className="mt-5 flex flex-wrap gap-3 border-t border-zinc-800 pt-4">
 
-                {project.githubUrl && (
-                  <a
-                    href={project.githubUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+            <a
+              href={developer.resumeUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
+            >
+              <FileText size={17} />
+              View Resume
+            </a>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* ========================================= */}
+      {/* DEVELOPER LINKS */}
+      {/* ========================================= */}
+
+      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+
+        <div className="flex items-center gap-3">
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+            <ExternalLink size={20} />
+          </div>
+
+          <div>
+
+            <h2 className="font-semibold text-white">
+              Developer Links
+            </h2>
+
+            <p className="text-sm text-zinc-500">
+              External profiles and portfolios
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div className="mt-6 flex flex-wrap gap-3">
+
+          {developer.github && (
+
+            <a
+              href={developer.github}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+            >
+              <ExternalLink size={17} />
+              GitHub
+            </a>
+
+          )}
+
+          {developer.leetcode && (
+
+            <a
+              href={developer.leetcode}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+            >
+              <Code2 size={17} />
+              LeetCode
+            </a>
+
+          )}
+
+          {!developer.github &&
+            !developer.leetcode && (
+
+              <p className="text-sm text-zinc-600">
+                No external profiles added.
+              </p>
+
+          )}
+
+        </div>
+
+      </div>
+
+
+      {/* ========================================= */}
+      {/* PROJECTS + GITHUB VERIFICATION */}
+      {/* ========================================= */}
+
+      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+
+        {/* Section Header */}
+
+        <div className="flex items-center gap-3">
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+            <FolderGit2 size={20} />
+          </div>
+
+          <div>
+
+            <h2 className="font-semibold text-white">
+              Projects
+            </h2>
+
+            <p className="text-sm text-zinc-500">
+              Projects provided by this developer
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* No projects */}
+
+        {!developer.projects ||
+          developer.projects.length === 0 ? (
+
+          <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/50 p-8 text-center">
+
+            <FolderGit2
+              size={35}
+              className="mx-auto text-zinc-600"
+            />
+
+            <p className="mt-3 text-sm text-zinc-500">
+              This developer has not added any projects yet.
+            </p>
+
+          </div>
+
+        ) : (
+
+          <div className="mt-6 space-y-6">
+
+            {developer.projects.map(
+              (project, index) => {
+
+                const verification =
+                  project.verification;
+
+                const isVerified =
+                  verification?.status ===
+                  "Verified";
+
+                const isFailed =
+                  verification?.status ===
+                  "Failed";
+
+                return (
+
+                  <div
+                    key={
+                      project._id ||
+                      project.id ||
+                      index
+                    }
+                    className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-6"
                   >
-                    <ExternalLink size={16} />
-                    GitHub Repository
-                  </a>
-                )}
 
-                {project.liveUrl && (
-                  <a
-                    href={project.liveUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
-                  >
-                    <ExternalLink size={16} />
-                    Live Demo
-                  </a>
-                )}
+                    {/* Project Header */}
 
-              </div>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+
+                      <div>
+
+                        <h3 className="text-xl font-semibold text-white">
+                          {project.name}
+                        </h3>
+
+                        {project.description && (
+
+                          <p className="mt-2 text-sm leading-6 text-zinc-400">
+                            {project.description}
+                          </p>
+
+                        )}
+
+                      </div>
+
+
+                      {/* Verification Badge */}
+
+                      {verification?.status && (
+
+                        <div>
+
+                          {isVerified && (
+
+                            <span className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-400">
+
+                              <CheckCircle2
+                                size={15}
+                              />
+
+                              GitHub Verified
+
+                            </span>
+
+                          )}
+
+
+                          {isFailed && (
+
+                            <span className="inline-flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400">
+
+                              <XCircle
+                                size={15}
+                              />
+
+                              Verification Failed
+
+                            </span>
+
+                          )}
+
+                        </div>
+
+                      )}
+
+                    </div>
+
+
+                    {/* Technologies */}
+
+                    {project.technologies?.length >
+                      0 && (
+
+                      <div className="mt-6">
+
+                        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                          Technologies
+                        </p>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+
+                          {project.technologies.map(
+                            (
+                              technology,
+                              techIndex
+                            ) => (
+
+                              <span
+                                key={`${technology}-${techIndex}`}
+                                className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300"
+                              >
+                                {technology}
+                              </span>
+
+                            )
+                          )}
+
+                        </div>
+
+                      </div>
+
+                    )}
+
+
+                    {/* GitHub Repository */}
+
+                    {project.githubUrl && (
+
+                      <div className="mt-6">
+
+                        <a
+                          href={
+                            project.githubUrl
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+                        >
+                          <ExternalLink size={17} />
+                          View GitHub Repository
+                          <ExternalLink
+                            size={15}
+                          />
+                        </a>
+
+                      </div>
+
+                    )}
+
+
+                    {/* ================================= */}
+                    {/* GITHUB VERIFICATION DETAILS */}
+                    {/* ================================= */}
+
+                    {verification && (
+
+                      <div className="mt-6 border-t border-zinc-800 pt-6">
+
+                        <div className="flex items-center gap-2">
+
+                          <ExternalLink
+                            size={18}
+                            className="text-zinc-400"
+                          />
+
+                          <h4 className="font-semibold text-white">
+                            GitHub Verification
+                          </h4>
+
+                        </div>
+
+
+                        {/* Verification checks */}
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+
+                          {/* Repository */}
+
+                          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+
+                            <p className="text-xs text-zinc-500">
+                              Repository
+                            </p>
+
+                            <div className="mt-2 flex items-center gap-2">
+
+                              {verification.repositoryExists ? (
+
+                                <CheckCircle2
+                                  size={17}
+                                  className="text-emerald-400"
+                                />
+
+                              ) : (
+
+                                <XCircle
+                                  size={17}
+                                  className="text-red-400"
+                                />
+
+                              )}
+
+                              <span className="text-sm text-zinc-300">
+                                {verification.repositoryExists
+                                  ? "Exists"
+                                  : "Not Found"}
+                              </span>
+
+                            </div>
+
+                          </div>
+
+
+                          {/* README */}
+
+                          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+
+                            <p className="text-xs text-zinc-500">
+                              README
+                            </p>
+
+                            <div className="mt-2 flex items-center gap-2">
+
+                              {verification.hasReadme ? (
+
+                                <CheckCircle2
+                                  size={17}
+                                  className="text-emerald-400"
+                                />
+
+                              ) : (
+
+                                <XCircle
+                                  size={17}
+                                  className="text-red-400"
+                                />
+
+                              )}
+
+                              <span className="text-sm text-zinc-300">
+                                {verification.hasReadme
+                                  ? "Available"
+                                  : "Missing"}
+                              </span>
+
+                            </div>
+
+                          </div>
+
+
+                          {/* Code */}
+
+                          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+
+                            <p className="text-xs text-zinc-500">
+                              Source Code
+                            </p>
+
+                            <div className="mt-2 flex items-center gap-2">
+
+                              {verification.hasCode ? (
+
+                                <CheckCircle2
+                                  size={17}
+                                  className="text-emerald-400"
+                                />
+
+                              ) : (
+
+                                <XCircle
+                                  size={17}
+                                  className="text-red-400"
+                                />
+
+                              )}
+
+                              <span className="text-sm text-zinc-300">
+                                {verification.hasCode
+                                  ? "Detected"
+                                  : "Not Detected"}
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+
+                        {/* Detected Languages */}
+
+                        {verification
+                          .detectedLanguages
+                          ?.length > 0 && (
+
+                          <div className="mt-6">
+
+                            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                              Detected Languages
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+
+                              {verification.detectedLanguages.map(
+                                (
+                                  language,
+                                  languageIndex
+                                ) => (
+
+                                  <span
+                                    key={`${language}-${languageIndex}`}
+                                    className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300"
+                                  >
+                                    {language}
+                                  </span>
+
+                                )
+                              )}
+
+                            </div>
+
+                          </div>
+
+                        )}
+
+
+                        {/* Matched Technologies */}
+
+                        {verification
+                          .matchedTechnologies
+                          ?.length > 0 && (
+
+                          <div className="mt-6">
+
+                            <p className="text-xs font-medium uppercase tracking-wide text-emerald-500">
+                              Matched Technologies
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+
+                              {verification.matchedTechnologies.map(
+                                (
+                                  technology,
+                                  technologyIndex
+                                ) => (
+
+                                  <span
+                                    key={`${technology}-${technologyIndex}`}
+                                    className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400"
+                                  >
+                                    {technology}
+                                  </span>
+
+                                )
+                              )}
+
+                            </div>
+
+                          </div>
+
+                        )}
+
+
+                        {/* Missing Technologies */}
+
+                        {verification
+                          .missingTechnologies
+                          ?.length > 0 && (
+
+                          <div className="mt-6">
+
+                            <p className="text-xs font-medium uppercase tracking-wide text-red-500">
+                              Missing Technologies
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+
+                              {verification.missingTechnologies.map(
+                                (
+                                  technology,
+                                  technologyIndex
+                                ) => (
+
+                                  <span
+                                    key={`${technology}-${technologyIndex}`}
+                                    className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs text-red-400"
+                                  >
+                                    {technology}
+                                  </span>
+
+                                )
+                              )}
+
+                            </div>
+
+                          </div>
+
+                        )}
+
+
+                        {/* Verified Date */}
+
+                        {verification.verifiedAt && (
+
+                          <p className="mt-6 text-xs text-zinc-600">
+
+                            Verified on{" "}
+
+                            {new Date(
+                              verification.verifiedAt
+                            ).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )}
+
+                          </p>
+
+                        )}
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+                );
+              }
             )}
 
           </div>
-        )
-      )}
 
-    </div>
-  ) : (
-    <div className="mt-6 rounded-xl border border-dashed border-zinc-800 p-8 text-center">
+        )}
 
-      <FolderKanban
-        size={28}
-        className="mx-auto text-zinc-600"
-      />
+      </div>
 
-      <p className="mt-3 text-sm text-zinc-500">
-        This developer has not added any projects yet.
-      </p>
-
-    </div>
-  )}
-
-</div> 
     </DashboardLayout>
   );
 };

@@ -89,6 +89,52 @@ projects: [
       default: "",
       trim: true,
     },
+    verification: {
+  status: {
+    type: String,
+    enum: [
+      "Not Verified",
+      "Verified",
+      "Failed"
+    ],
+    default: "Not Verified",
+  },
+
+  repositoryExists: {
+    type: Boolean,
+    default: false,
+  },
+
+  hasReadme: {
+    type: Boolean,
+    default: false,
+  },
+
+  hasCode: {
+    type: Boolean,
+    default: false,
+  },
+
+  detectedLanguages: {
+    type: [String],
+    default: [],
+  },
+
+  matchedTechnologies: {
+    type: [String],
+    default: [],
+  },
+
+  missingTechnologies: {
+    type: [String],
+    default: [],
+  },
+
+  verifiedAt: {
+    type: Date,
+    default: null,
+  },
+},
   },
 ],
 resumeUrl: {

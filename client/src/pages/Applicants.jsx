@@ -6,6 +6,7 @@ import {
   XCircle,
   Code2,
   Mail,
+  FileText,
   Loader2,
   AlertCircle,
   ExternalLink,
@@ -38,28 +39,39 @@ const Applicants = () => {
         const recruiterProjects = projectData.projects || [];
 
         // Get applicants for every project
-        const projectsWithApplicants = await Promise.all(
-          recruiterProjects.map(async (project) => {
-            try {
-              const applicantData = await getApplicants(project._id);
+      const projectsWithApplicants = await Promise.all(
+  recruiterProjects.map(async (project) => {
+    try {
+      const applicantData = await getApplicants(project._id);
 
-              return {
-                ...project,
-                applications: applicantData.applications || [],
-              };
-            } catch (error) {
-              console.error(
-                `Failed to load applicants for ${project.title}:`,
-                error
-              );
-
-              return {
-                ...project,
-                applications: [],
-              };
-            }
-          })
+      // Sort applicants by compatibility score
+      // Highest score should appear first
+      const sortedApplications = [
+        ...(applicantData.applications || []),
+      ].sort((a, b) => {
+        return (
+          (b.compatibilityScore || 0) -
+          (a.compatibilityScore || 0)
         );
+      });
+
+      return {
+        ...project,
+        applications: sortedApplications,
+      };
+    } catch (error) {
+      console.error(
+        `Failed to load applicants for ${project.title}:`,
+        error
+      );
+
+      return {
+        ...project,
+        applications: [],
+      };
+    }
+  })
+);
 
         setProjects(projectsWithApplicants);
       } catch (error) {
@@ -504,7 +516,287 @@ const Applicants = () => {
                                 "Pending"}
                             </span>
                           </div>
+                        {/* Developer Projects & GitHub Verification */}
 
+<div className="mt-6 border-t border-zinc-800 pt-6">
+  <div className="flex items-center gap-3">
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+      <Code2 size={20} />
+    </div>
+
+    <div>
+      <h3 className="font-semibold text-white">
+        Projects & GitHub Verification
+      </h3>
+
+      <p className="text-sm text-zinc-500">
+        Review the candidate's submitted projects.
+      </p>
+    </div>
+  </div>
+
+  {application.student?.projects?.length > 0 ? (
+    <div className="mt-5 space-y-4">
+      {application.student.projects.map((project, index) => {
+        const verification = project.verification;
+
+        return (
+          <div
+            key={project._id || index}
+            className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-5"
+          >
+            {/* Project Header */}
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h4 className="text-lg font-semibold text-white">
+                  {project.name}
+                </h4>
+
+                {project.description && (
+                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                    {project.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Verification Badge */}
+
+              {verification?.status === "Verified" ? (
+                <div className="flex shrink-0 items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+                  <CheckCircle size={16} />
+                  GitHub Verified
+                </div>
+              ) : verification?.status === "Failed" ? (
+                <div className="flex shrink-0 items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                  <XCircle size={16} />
+                  Verification Failed
+                </div>
+              ) : (
+                <div className="flex shrink-0 items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">
+                  <XCircle size={16} />
+                  Not Verified
+                </div>
+              )}
+            </div>
+
+            {/* Technologies */}
+
+            {project.technologies?.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  Technologies
+                </p>
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {project.technologies.map(
+                    (technology, technologyIndex) => (
+                      <span
+                        key={`${technology}-${technologyIndex}`}
+                        className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300"
+                      >
+                        {technology}
+                      </span>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Verification Details */}
+
+            {verification && (
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+                  <p className="text-xs text-zinc-500">
+                    Repository
+                  </p>
+
+                  <p className="mt-1 text-sm font-medium text-white">
+                    {verification.repositoryExists
+                      ? "Found"
+                      : "Not Found"}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+                  <p className="text-xs text-zinc-500">
+                    README
+                  </p>
+
+                  <p className="mt-1 text-sm font-medium text-white">
+                    {verification.hasReadme
+                      ? "Present"
+                      : "Missing"}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+                  <p className="text-xs text-zinc-500">
+                    Code
+                  </p>
+
+                  <p className="mt-1 text-sm font-medium text-white">
+                    {verification.hasCode
+                      ? "Detected"
+                      : "Not Detected"}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+                  <p className="text-xs text-zinc-500">
+                    Verification
+                  </p>
+
+                  <p
+                    className={`mt-1 text-sm font-medium ${
+                      verification.status === "Verified"
+                        ? "text-emerald-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {verification.status}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Matched Technologies */}
+
+            {verification?.matchedTechnologies?.length > 0 && (
+              <div className="mt-5">
+                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  Verified Technologies
+                </p>
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {verification.matchedTechnologies.map(
+                    (technology, technologyIndex) => (
+                      <span
+                        key={`${technology}-${technologyIndex}`}
+                        className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-400"
+                      >
+                        ✓ {technology}
+                      </span>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Missing Technologies */}
+
+            {verification?.missingTechnologies?.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  Missing Technologies
+                </p>
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {verification.missingTechnologies.map(
+                    (technology, technologyIndex) => (
+                      <span
+                        key={`${technology}-${technologyIndex}`}
+                        className="rounded-lg bg-red-500/10 px-3 py-1.5 text-xs text-red-400"
+                      >
+                        ✕ {technology}
+                      </span>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Links */}
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              {project.githubUrl && (
+                <a
+                  href={project.githubUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+                >
+                  <ExternalLink size={16} />
+                  GitHub Repository
+                </a>
+              )}
+
+              {project.liveUrl && (
+                <a
+                  href={project.liveUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+                >
+                  <ExternalLink size={16} />
+                  Live Demo
+                </a>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/50 p-5">
+      <p className="text-sm text-zinc-500">
+        This developer has not added any projects.
+      </p>
+    </div>
+  )}
+</div> 
+{/* Resume / CV */}
+
+<div className="mt-6 border-t border-zinc-800 pt-6">
+  <div className="flex items-center gap-3">
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
+      <FileText size={20} />
+    </div>
+
+    <div>
+      <h3 className="font-semibold text-white">
+        Resume / CV
+      </h3>
+
+      <p className="text-sm text-zinc-500">
+        Candidate's uploaded resume.
+      </p>
+    </div>
+  </div>
+
+  {application.student?.resumeUrl ? (
+    <div className="mt-4 flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+      <div>
+        <p className="text-sm font-medium text-white">
+          {application.student.resumeFileName ||
+            "Candidate Resume"}
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-500">
+          PDF Resume
+        </p>
+      </div>
+
+      <a
+        href={application.student.resumeUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+      >
+        <ExternalLink size={16} />
+        View CV
+      </a>
+    </div>
+  ) : (
+    <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+      <p className="text-sm text-zinc-500">
+        This candidate has not uploaded a CV.
+      </p>
+    </div>
+  )}
+</div>  
+   
                           {/* Buttons */}
 
                           <div className="flex gap-3">

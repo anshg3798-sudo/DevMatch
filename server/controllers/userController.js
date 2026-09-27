@@ -1,6 +1,9 @@
 const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
+const {
+  verifyGithubProject,
+} = require("../utils/githubVerification");
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -266,10 +269,79 @@ const uploadResume = async (req, res) => {
     });
   }
 };
+const verifyProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const user = await User.findById(
+      req.user.id
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    const project = user.projects.id(
+      projectId
+    );
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found.",
+      });
+    }
+
+    if (!project.githubUrl) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Add a GitHub repository before verification.",
+      });
+    }
+
+    const verification =
+      await verifyGithubProject({
+        githubUrl: project.githubUrl,
+        technologies:
+          project.technologies || [],
+          projectName:project.name,
+          projectDescription: project.description,
+      });
+
+    project.verification = verification;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message:
+        verification.status === "Verified"
+          ? "Project verified successfully."
+          : "Project verification failed.",
+      verification,
+    });
+  } catch (error) {
+    console.error(
+      "Project verification error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message:
+        "Failed to verify project.",
+    });
+  }
+};
 module.exports = {
   getProfile,
   updateProfile,
   searchDevelopers,
   getDeveloperById,
   uploadResume,
+  verifyProject,
 };

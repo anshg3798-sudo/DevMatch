@@ -8,6 +8,7 @@ const {
    searchDevelopers,
    getDeveloperById,
     uploadResume,
+    verifyProject,
 } = require("../controllers/userController");
 const resumeUpload = require(
   "../middleware/resumeUpload"
@@ -41,5 +42,10 @@ router.patch(
   "/profile",
   authMiddleware,
   updateProfile
+);
+router.post(
+  "/projects/:projectId/verify",
+  authMiddleware,
+  verifyProject
 );
 module.exports = router;

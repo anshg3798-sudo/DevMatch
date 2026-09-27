@@ -43,3 +43,10 @@ export const uploadResume = async (file) => {
 
   return response.data;
 };
+export const verifyProject = async (projectId) => {
+  const response = await API.post(
+    `/users/projects/${projectId}/verify`
+  );
+
+  return response.data;
+};

@@ -132,11 +132,27 @@ const getApplicants = async (req, res) => {
     const applications = await Application.find({
       project: projectId,
     })
-      .populate(
-        "student",
-        "name email skills github leetcode"
-      )
-      .sort({ createdAt: -1 });
+    .populate(
+  "student",
+  `
+    name
+    email
+    skills
+    github
+    leetcode
+    experienceYears
+    availabilityHours
+    communicationRating
+    projects
+    resumeUrl
+    resumeFileName
+  `
+)
+      
+      .sort({ 
+        compatibilityScore: -1,
+        createdAt: -1,
+        });
      const applicantsWithExplanation = applications.map((application) => {
 
     return {
