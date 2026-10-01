@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -19,7 +18,7 @@ import StudentApplications from "./pages/StudentApplications";
 import StudentProfile from "./pages/StudentProfile";
 import SearchDevelopers from "./pages/SearchDevelopers";
 import DeveloperDetails from "./pages/DeveloperDetails";
-
+import ApplicantReview from "./pages/ApplicantReview";
 function App() {
     return (
         <BrowserRouter>
@@ -151,6 +150,14 @@ function App() {
   element={
     <ProtectedRoute allowedRole="student">
       <StudentProfile />
+    </ProtectedRoute>
+  }
+/>
+ <Route
+  path="/recruiter/applicants/:applicationId"
+  element={
+    <ProtectedRoute allowedRole="recruiter">
+      <ApplicantReview />
     </ProtectedRoute>
   }
 />

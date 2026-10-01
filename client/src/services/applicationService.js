@@ -33,3 +33,12 @@ export const getMyApplications = async () => {
 
   return response.data;
 };
+export const getApplicationById = async (
+  applicationId
+) => {
+  const response = await API.get(
+    `/applications/${applicationId}`
+  );
+
+  return response.data;
+};

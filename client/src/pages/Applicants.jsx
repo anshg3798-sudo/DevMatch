@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import DashboardLayout from "../components/dashboard/DashboardLayout";
-
+import { useNavigate } from "react-router-dom";
 import { getMyProjects } from "../services/projectService";
 import {
   getApplicants,
@@ -21,6 +21,7 @@ import {
 } from "../services/applicationService";
 
 const Applicants = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
@@ -796,46 +797,68 @@ const Applicants = () => {
     </div>
   )}
 </div>  
-   
-                          {/* Buttons */}
+                         {/*whole buttons section */}
+   {/* Actions */}
 
-                          <div className="flex gap-3">
-                            <button
-                              disabled={
-                                updatingId ===
-                                application._id
-                              }
-                              onClick={() =>
-                                handleStatusUpdate(
-                                  application._id,
-                                  "Rejected"
-                                )
-                              }
-                              className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-sm font-medium text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              <XCircle size={17} />
+<div className="flex flex-wrap gap-3">
 
-                              Reject
-                            </button>
+  {/* Review Candidate */}
 
-                            <button
-                              disabled={
-                                updatingId ===
-                                application._id
-                              }
-                              onClick={() =>
-                                handleStatusUpdate(
-                                  application._id,
-                                  "Accepted"
-                                )
-                              }
-                              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              <CheckCircle size={17} />
+<button
+  onClick={() => {
+    sessionStorage.setItem(
+      `application-${application._id}`,
+      JSON.stringify(application)
+    );
 
-                              Accept
-                            </button>
-                          </div>
+    navigate(`/recruiter/applicants/${application._id}`);
+  }}
+  className="flex items-center gap-2 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-5 py-3 text-sm font-medium text-indigo-400 transition hover:bg-indigo-500/20"
+>
+  <Users size={18} />
+  Review Candidate
+</button>
+
+
+  {/* Reject */}
+
+  <button
+    disabled={
+      updatingId === application._id
+    }
+    onClick={() =>
+      handleStatusUpdate(
+        application._id,
+        "Rejected"
+      )
+    }
+    className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-2.5 text-sm font-medium text-red-400 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <XCircle size={17} />
+    Reject
+  </button>
+
+
+  {/* Accept */}
+
+  <button
+    disabled={
+      updatingId === application._id
+    }
+    onClick={() =>
+      handleStatusUpdate(
+        application._id,
+        "Accepted"
+      )
+    }
+    className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    <CheckCircle size={17} />
+    Accept
+  </button>
+
+</div>
+                          
                         </div>
                       </div>
                     );

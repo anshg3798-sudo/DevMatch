@@ -308,8 +308,9 @@ const verifyProject = async (req, res) => {
         githubUrl: project.githubUrl,
         technologies:
           project.technologies || [],
-          projectName:project.name,
-          projectDescription: project.description,
+        projectName:project.name,
+        projectDescription: project.description,
+        candidateGithub:user.github,
       });
 
     project.verification = verification;

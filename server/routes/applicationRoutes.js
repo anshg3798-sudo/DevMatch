@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const { applyToProject,getApplicants,getMyApplications,updateApplicationStatus } = require("../controllers/applicationController");
+const { applyToProject,getApplicants,getMyApplications,updateApplicationStatus,getApplicationById, } = require("../controllers/applicationController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const { isStudent,isRecruiter } = require("../middleware/roleMiddleware");
@@ -24,6 +24,12 @@ router.get(
   authMiddleware,
   isStudent,
   getMyApplications
+);
+router.get(
+  "/:applicationId",
+  authMiddleware,
+  isRecruiter,
+  getApplicationById
 );
 router.patch(
     "/:applicationId/status",

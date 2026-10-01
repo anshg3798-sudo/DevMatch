@@ -146,6 +146,7 @@ const getApplicants = async (req, res) => {
     projects
     resumeUrl
     resumeFileName
+    projectsCount
   `
 )
       
@@ -256,6 +257,79 @@ const updateApplicationStatus = async (req, res) => {
         });
     }
 };
+const getApplicationById = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await Application.findById(
+      applicationId
+    ).populate(
+      "student",
+      `
+        name
+        email
+        skills
+        github
+        leetcode
+        experienceYears
+        availabilityHours
+        communicationRating
+        projectsCount
+        resumeUrl
+        resumeFileName
+        projects
+      `
+    );
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found.",
+      });
+    }
+
+    // Get the project
+    const project = await Project.findById(
+      application.project
+    );
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found.",
+      });
+    }
+
+    // Only project owner can review application
+    if (
+      project.createdBy.toString() !==
+      req.user.id
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You are not authorized to view this application.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      application,
+    });
+
+  } catch (error) {
+    console.error(
+      "Get application by ID error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message:
+        "Failed to load application.",
+    });
+  }
+};
 module.exports = {
-  applyToProject,getApplicants,getMyApplications,updateApplicationStatus
+  applyToProject,getApplicants,getMyApplications,updateApplicationStatus,getApplicationById,
 };
