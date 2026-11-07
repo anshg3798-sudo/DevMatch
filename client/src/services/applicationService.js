@@ -42,3 +42,10 @@ export const getApplicationById = async (
 
   return response.data;
 };
+export const recalculateProjectScores = async (projectId) => {
+  const response = await API.post(
+    `/applications/project/${projectId}/recalculate`
+  );
+
+  return response.data;
+};

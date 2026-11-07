@@ -17,7 +17,7 @@ import {
 
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 
-import { updateApplicationStatus } from "../services/applicationService";
+import { updateApplicationStatus,getApplicationById } from "../services/applicationService";
 
 const ApplicantReview = () => {
   const { applicationId } = useParams();
@@ -33,93 +33,87 @@ const ApplicantReview = () => {
   // =========================================================
 
   useEffect(() => {
-    const loadApplication = () => {
-      try {
-        setLoading(true);
-        setError("");
+  let isMounted = true;
 
-        const storedApplication = sessionStorage.getItem(
-          `application-${applicationId}`
+  const loadApplication = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getApplicationById(applicationId);
+
+      if (!response?.success || !response?.application) {
+        throw new Error("Application information not found.");
+      }
+
+      if (isMounted) {
+        setApplication(response.application);
+      }
+
+    } catch (error) {
+      console.error("Failed to load applicant:", error);
+
+      if (isMounted) {
+        setError(
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to load applicant information."
         );
+      }
 
-        if (!storedApplication) {
-          setError(
-            "Applicant information could not be loaded. Please go back to Applicants and open the applicant again."
-          );
-          return;
-        }
-
-        const parsedApplication = JSON.parse(storedApplication);
-
-        if (!parsedApplication) {
-          setError("Invalid applicant information.");
-          return;
-        }
-
-        setApplication(parsedApplication);
-      } catch (error) {
-        console.error("Failed to load applicant:", error);
-
-        setError("Failed to load applicant information.");
-      } finally {
+    } finally {
+      if (isMounted) {
         setLoading(false);
       }
-    };
+    }
+  };
 
-    loadApplication();
-  }, [applicationId]);
+  loadApplication();
+
+  return () => {
+    isMounted = false;
+  };
+
+}, [applicationId]);
 
   // =========================================================
   // ACCEPT / REJECT APPLICATION
   // =========================================================
 
   const handleStatusChange = async (status) => {
-    try {
-      setActionLoading(true);
+  if (!application || actionLoading) return;
 
-      const response = await updateApplicationStatus(
-        applicationId,
-        status
-      );
+  try {
+    setActionLoading(true);
+    setError("");
 
-      console.log("Application status updated:", response);
+    const response = await updateApplicationStatus(
+      applicationId,
+      status
+    );
 
-      setApplication((prev) => ({
-        ...prev,
-        status,
-      }));
-
-      // Update the stored application too
-      const storedApplication = sessionStorage.getItem(
-        `application-${applicationId}`
-      );
-
-      if (storedApplication) {
-        const parsedApplication = JSON.parse(
-          storedApplication
-        );
-
-        parsedApplication.status = status;
-
-        sessionStorage.setItem(
-          `application-${applicationId}`,
-          JSON.stringify(parsedApplication)
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Failed to update application:",
-        error
-      );
-
-      alert(
-        error.response?.data?.message ||
-          "Failed to update application."
-      );
-    } finally {
-      setActionLoading(false);
+    if (!response?.success) {
+      throw new Error("Unable to update application status.");
     }
-  };
+
+    setApplication((prev) => ({
+      ...prev,
+      status: response.application?.status || status,
+    }));
+
+  } catch (error) {
+    console.error("Failed to update application:", error);
+
+    alert(
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to update application."
+    );
+
+  } finally {
+    setActionLoading(false);
+  }
+};
 
   // =========================================================
   // LOADING
@@ -902,7 +896,10 @@ const ApplicantReview = () => {
           <div className="flex gap-4">
 
             <button
-              disabled={actionLoading}
+              disabled={
+  actionLoading ||
+  status === "Rejected"
+}
               onClick={() =>
                 handleStatusChange("Rejected")
               }
@@ -921,7 +918,10 @@ const ApplicantReview = () => {
             </button>
 
             <button
-              disabled={actionLoading}
+              disabled={
+  actionLoading ||
+  status === "Accepted"
+}
               onClick={() =>
                 handleStatusChange("Accepted")
               }

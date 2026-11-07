@@ -1,32 +1,54 @@
+
 import { useState } from "react";
 import { Plus, X, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { createProject } from "../../services/projectService";
-import { requiredSkills } from "../HowItWorks/requirementsData";
+
+const DEFAULT_WEIGHTS = {
+  skills: 40,
+  availability: 20,
+  experience: 15,
+  communication: 15,
+  projects: 10,
+};
+
+const WEIGHT_LABELS = [
+  { key: "skills", label: "Skills" },
+  { key: "availability", label: "Availability" },
+  { key: "experience", label: "Experience" },
+  { key: "communication", label: "Communication" },
+  { key: "projects", label: "Projects" },
+];
 
 const CreateProjectForm = () => {
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
   });
-   const [title, setTitle] = useState("");
-   const [description, setDescription] = useState("");
- const [experienceRequired, setExperienceRequired] =
-  useState(0);
 
-const [availabilityRequired, setAvailabilityRequired] =
-  useState(0);
+  const [experienceRequired, setExperienceRequired] = useState(0);
+  const [availabilityRequired, setAvailabilityRequired] = useState(0);
+  const [communicationRequired, setCommunicationRequired] = useState(3);
 
-const [communicationRequired, setCommunicationRequired] =
-  useState(3);
+  const [matchingWeights, setMatchingWeights] = useState(
+    DEFAULT_WEIGHTS
+  );
+
   const [skills, setSkills] = useState([]);
   const [skillInput, setSkillInput] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const totalWeight = Object.values(matchingWeights).reduce(
+    (total, value) => total + Number(value),
+    0
+  );
+
+  const weightsValid = totalWeight === 100;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,18 +59,28 @@ const [communicationRequired, setCommunicationRequired] =
     }));
   };
 
+  const handleWeightChange = (key, value) => {
+    const numericValue = Math.min(
+      100,
+      Math.max(0, Math.round(Number(value) || 0))
+    );
+
+    setMatchingWeights((prev) => ({
+      ...prev,
+      [key]: numericValue,
+    }));
+  };
+
   const handleAddSkill = (e) => {
     e.preventDefault();
 
-    const skill = skillInput.trim();
+    const newSkill = skillInput.trim();
 
-    if (!skill) {
-      return;
-    }
+    if (!newSkill) return;
 
     const alreadyExists = skills.some(
       (existingSkill) =>
-        existingSkill.toLowerCase() === skill.toLowerCase()
+        existingSkill.toLowerCase() === newSkill.toLowerCase()
     );
 
     if (alreadyExists) {
@@ -56,8 +88,7 @@ const [communicationRequired, setCommunicationRequired] =
       return;
     }
 
-    setSkills((prev) => [...prev, skill]);
-
+    setSkills((prev) => [...prev, newSkill]);
     setSkillInput("");
     setError("");
   };
@@ -69,66 +100,72 @@ const [communicationRequired, setCommunicationRequired] =
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setError("");
 
-  setError("");
+    if (!formData.title.trim()) {
+      setError("Project title is required.");
+      return;
+    }
 
-  if (!formData.title.trim()) {
-    setError("Project title is required.");
-    return;
-  }
+    if (!formData.description.trim()) {
+      setError("Project description is required.");
+      return;
+    }
 
-  if (!formData.description.trim()) {
-    setError("Project description is required.");
-    return;
-  }
+    if (skills.length === 0) {
+      setError("Please add at least one required skill.");
+      return;
+    }
 
-  if (skills.length === 0) {
-    setError("Please add at least one required skill.");
-    return;
-  }
+    if (!weightsValid) {
+      setError(
+        `Matching weights must total exactly 100%. Current total: ${totalWeight}%.`
+      );
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const projectData = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      requiredSkills: skills,
-      experienceRequired: Number(experienceRequired),
+      const projectData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        requiredSkills: skills,
 
-      availabilityRequired: Number(
-     availabilityRequired
-),
+        experienceRequired: Number(experienceRequired),
+        availabilityRequired: Number(availabilityRequired),
+        communicationRequired: Number(communicationRequired),
 
-     communicationRequired: Number(
-     communicationRequired
-),
-    };
+        matchingWeights: {
+          skills: Number(matchingWeights.skills),
+          availability: Number(matchingWeights.availability),
+          experience: Number(matchingWeights.experience),
+          communication: Number(matchingWeights.communication),
+          projects: Number(matchingWeights.projects),
+        },
+      };
 
-    await createProject(projectData);
+      await createProject(projectData);
 
-    navigate("/recruiter/projects");
+      navigate("/recruiter/projects");
+    } catch (error) {
+      console.error("Create project error:", error);
 
-  } catch (error) {
-    console.error("Create project error:", error);
+      const message =
+        error.response?.data?.message ||
+        "Failed to create project. Please try again.";
 
-    const message =
-      error.response?.data?.message ||
-      "Failed to create project. Please try again.";
-
-    setError(message);
-
-  } finally {
-    setLoading(false);
-  }
-};
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
 
       {/* Basic Information */}
-
       <section>
         <h2 className="text-lg font-semibold text-white">
           Basic Information
@@ -139,8 +176,6 @@ const [communicationRequired, setCommunicationRequired] =
         </p>
 
         <div className="mt-5 space-y-5">
-
-          {/* Project Title */}
 
           <div>
             <label
@@ -160,8 +195,6 @@ const [communicationRequired, setCommunicationRequired] =
               className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-500"
             />
           </div>
-
-          {/* Description */}
 
           <div>
             <label
@@ -186,7 +219,6 @@ const [communicationRequired, setCommunicationRequired] =
       </section>
 
       {/* Required Skills */}
-
       <section>
         <h2 className="text-lg font-semibold text-white">
           Required Skills
@@ -197,7 +229,6 @@ const [communicationRequired, setCommunicationRequired] =
         </p>
 
         <div className="mt-5">
-
           <div className="flex gap-3">
 
             <input
@@ -212,7 +243,7 @@ const [communicationRequired, setCommunicationRequired] =
                 }
               }}
               placeholder="e.g. React"
-              className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-500"
+              className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none transition placeholder:text-zinc-600 focus:border-indigo-500"
             />
 
             <button
@@ -228,7 +259,6 @@ const [communicationRequired, setCommunicationRequired] =
 
           {skills.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
-
               {skills.map((skill) => (
                 <div
                   key={skill}
@@ -245,115 +275,201 @@ const [communicationRequired, setCommunicationRequired] =
                   </button>
                 </div>
               ))}
-
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Compatibility Requirements */}
+      <section className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5">
+
+        <h3 className="text-lg font-semibold text-white">
+          Compatibility Requirements
+        </h3>
+
+        <p className="mt-1 text-sm text-zinc-500">
+          These requirements will be used by DevMatch to calculate
+          developer compatibility.
+        </p>
+
+        <div className="mt-5 grid gap-5 md:grid-cols-3">
+
+          {/* Experience */}
+          <div>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Minimum Experience
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              step="0.5"
+              value={experienceRequired}
+              onChange={(e) =>
+                setExperienceRequired(e.target.value)
+              }
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
+            />
+
+            <p className="mt-1 text-xs text-zinc-600">
+              Years
+            </p>
+          </div>
+
+          {/* Availability */}
+          <div>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Required Availability
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              value={availabilityRequired}
+              onChange={(e) =>
+                setAvailabilityRequired(e.target.value)
+              }
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
+            />
+
+            <p className="mt-1 text-xs text-zinc-600">
+              Hours per week
+            </p>
+          </div>
+
+          {/* Communication */}
+          <div>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Communication Level
+            </label>
+
+            <select
+              value={communicationRequired}
+              onChange={(e) =>
+                setCommunicationRequired(Number(e.target.value))
+              }
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
+            >
+              <option value={1}>1 - Beginner</option>
+              <option value={2}>2 - Basic</option>
+              <option value={3}>3 - Good</option>
+              <option value={4}>4 - Very Good</option>
+              <option value={5}>5 - Excellent</option>
+            </select>
+          </div>
 
         </div>
       </section>
-      {/* Compatibility Requirements */}
 
-<div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-5">
+      {/* Custom Matching Weights */}
+      <section className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5">
 
-  <h3 className="text-lg font-semibold text-white">
-    Compatibility Requirements
-  </h3>
+        <div>
+          <h3 className="text-lg font-semibold text-white">
+            Custom Matching Weights
+          </h3>
 
-  <p className="mt-1 text-sm text-zinc-500">
-    These requirements will be used by DevMatch to
-    calculate developer compatibility.
-  </p>
+          <p className="mt-1 text-sm text-zinc-500">
+            Choose how much importance each factor should have
+            while ranking developers.
+          </p>
+        </div>
 
-  <div className="mt-5 grid gap-5 md:grid-cols-3">
+        <div className="mt-6 space-y-6">
 
-    {/* Experience */}
+          {WEIGHT_LABELS.map(({ key, label }) => (
+            <div key={key}>
 
-    <div>
-      <label className="mb-2 block text-sm text-zinc-400">
-        Minimum Experience
-      </label>
+              <div className="mb-2 flex items-center justify-between gap-4">
 
-      <input
-        type="number"
-        min="0"
-        step="0.5"
-        value={experienceRequired}
-        onChange={(e) =>
-          setExperienceRequired(e.target.value)
-        }
-        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
-      />
+                <label
+                  htmlFor={`${key}-weight`}
+                  className="text-sm font-medium text-zinc-300"
+                >
+                  {label}
+                </label>
 
-      <p className="mt-1 text-xs text-zinc-600">
-        Years
-      </p>
-    </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id={`${key}-weight`}
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={matchingWeights[key]}
+                    onChange={(e) =>
+                      handleWeightChange(key, e.target.value)
+                    }
+                    className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-right text-sm text-white outline-none focus:border-indigo-500"
+                  />
 
-    {/* Availability */}
+                  <span className="text-sm text-zinc-400">
+                    %
+                  </span>
+                </div>
 
-    <div>
-      <label className="mb-2 block text-sm text-zinc-400">
-        Required Availability
-      </label>
+              </div>
 
-      <input
-        type="number"
-        min="0"
-        value={availabilityRequired}
-        onChange={(e) =>
-          setAvailabilityRequired(e.target.value)
-        }
-        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
-      />
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value={matchingWeights[key]}
+                onChange={(e) =>
+                  handleWeightChange(key, e.target.value)
+                }
+                className="w-full cursor-pointer accent-indigo-500"
+                aria-label={`${label} matching percentage`}
+              />
 
-      <p className="mt-1 text-xs text-zinc-600">
-        Hours per week
-      </p>
-    </div>
+            </div>
+          ))}
 
-    {/* Communication */}
+        </div>
 
-    <div>
-      <label className="mb-2 block text-sm text-zinc-400">
-        Communication Level
-      </label>
+        {/* Total Weight */}
+        <div className="mt-7 flex items-center justify-between border-t border-zinc-800 pt-5">
 
-      <select
-        value={communicationRequired}
-        onChange={(e) =>
-          setCommunicationRequired(
-            Number(e.target.value)
-          )
-        }
-        className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-indigo-500"
-      >
-        <option value={1}>
-          1 - Beginner
-        </option>
+          <div>
+            <p className="text-sm font-medium text-zinc-300">
+              Total Weight
+            </p>
 
-        <option value={2}>
-          2 - Basic
-        </option>
+            <p className="mt-1 text-xs text-zinc-500">
+              All factors must add up to 100%.
+            </p>
+          </div>
 
-        <option value={3}>
-          3 - Good
-        </option>
+          <span
+            className={`text-xl font-bold ${
+              weightsValid
+                ? "text-emerald-400"
+                : "text-red-400"
+            }`}
+          >
+            {totalWeight}%
+          </span>
 
-        <option value={4}>
-          4 - Very Good
-        </option>
+        </div>
 
-        <option value={5}>
-          5 - Excellent
-        </option>
-      </select>
-    </div>
+        {!weightsValid && (
+          <p className="mt-3 text-sm text-red-400">
+            {totalWeight < 100
+              ? `You need ${100 - totalWeight}% more.`
+              : `Reduce the total by ${totalWeight - 100}%.`}
+          </p>
+        )}
 
-  </div>
-</div>
+        {weightsValid && (
+          <p className="mt-3 text-sm text-emerald-400">
+            Your matching percentages are valid.
+          </p>
+        )}
+
+      </section>
 
       {/* Error */}
-
       {error && (
         <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {error}
@@ -361,28 +477,21 @@ const [communicationRequired, setCommunicationRequired] =
       )}
 
       {/* Submit */}
-
       <div className="flex justify-end border-t border-zinc-800 pt-6">
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !weightsValid}
           className="flex min-w-40 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-
           {loading ? (
             <>
-              <Loader2
-                size={18}
-                className="animate-spin"
-              />
-
+              <Loader2 size={18} className="animate-spin" />
               Creating...
             </>
           ) : (
             "Create Project"
           )}
-
         </button>
 
       </div>
