@@ -14,7 +14,7 @@ const resumeUpload = require(
   "../middleware/resumeUpload"
 );
 const authMiddleware = require("../middleware/authMiddleware");
-const { isRecruiter } = require("../middleware/roleMiddleware");
+const { isRecruiter , isStudent} = require("../middleware/roleMiddleware");
 router.get(
   "/profile",
   authMiddleware,
@@ -46,6 +46,7 @@ router.patch(
 router.post(
   "/projects/:projectId/verify",
   authMiddleware,
+  isStudent,
   verifyProject
 );
 module.exports = router;

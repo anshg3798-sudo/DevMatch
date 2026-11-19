@@ -11,9 +11,15 @@ const createProject = async (req, res) => {
             requiredSkills,
             experienceRequired,
             availabilityRequired,
-            communicationRequired
+            communicationRequired,
+             matchingWeights,
         } = req.body;
-
+        if (!validateMatchingWeights(matchingWeights)) {
+  return res.status(400).json({
+    success: false,
+    message: "Matching weights must be valid numbers totaling 100%.",
+  });
+}
         const project = await Project.create({
             title,
             description,
@@ -21,6 +27,7 @@ const createProject = async (req, res) => {
             experienceRequired,
             availabilityRequired,
             communicationRequired,
+             matchingWeights,
             createdBy: req.user.id
         });
 
@@ -37,6 +44,31 @@ const createProject = async (req, res) => {
         });
 
     }
+};
+const validateMatchingWeights = (weights) => {
+  if (!weights) return true;
+
+  const keys = [
+    "skills",
+    "availability",
+    "experience",
+    "communication",
+    "projects",
+  ];
+
+  if (
+    keys.some(
+      (key) =>
+        typeof weights[key] !== "number" ||
+        !Number.isFinite(weights[key]) ||
+        weights[key] < 0 ||
+        weights[key] > 100
+    )
+  ) {
+    return false;
+  }
+
+  return keys.reduce((sum, key) => sum + weights[key], 0) === 100;
 };
 const getAllProjects = async (req, res) => {
     try {
@@ -107,7 +139,15 @@ const updateProject = async (req, res) => {
                 message: "You can update only your own projects."
             });
         }
-
+        if (
+  req.body.matchingWeights &&
+  !validateMatchingWeights(req.body.matchingWeights)
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Matching weights must total 100%.",
+  });
+}
         const updatedProject = await Project.findByIdAndUpdate(
             req.params.id,
             req.body,

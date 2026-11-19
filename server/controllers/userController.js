@@ -313,9 +313,29 @@ const verifyProject = async (req, res) => {
         candidateGithub:user.github,
       });
 
-    project.verification = verification;
+   // If GitHub itself could not be reached, do not save this
+// temporary API failure as the student's verification result.
+if (verification.status === "Unable to Verify") {
+  return res.status(503).json({
+    success: false,
+    message: verification.error?.message ||
+      "GitHub verification is temporarily unavailable.",
+    verification,
+  });
+}
 
-    await user.save();
+project.verification = verification;
+
+await user.save();
+
+return res.status(200).json({
+  success: true,
+  message:
+    verification.status === "Verified"
+      ? "Project verified successfully."
+      : "Project verification completed. The project did not meet all verification checks.",
+  verification,
+});
 
     res.status(200).json({
       success: true,

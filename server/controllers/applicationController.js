@@ -81,6 +81,8 @@ const applyToProject = async (req, res) => {
         compatibilityBreakdown:
           compatibility.breakdown,
 
+          matchingWeightsUsed: compatibility.weights,
+
         matchedSkills:
           compatibility.matchedSkills,
 
@@ -106,6 +108,101 @@ const applyToProject = async (req, res) => {
     });
   }
 };
+
+// Recruiter: recalculate all applicant scores for a project
+const recalculateProjectScores = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    // 1. Find project
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found.",
+      });
+    }
+
+    // 2. Verify project ownership
+    if (project.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to modify this project.",
+      });
+    }
+
+    // 3. Fetch all applications and required developer data
+    const applications = await Application.find({
+      project: projectId,
+    }).populate(
+      "student",
+      "name email skills experienceYears communicationRating availabilityHours projectsCount projects"
+    );
+
+    if (applications.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "There are no applications to recalculate.",
+        updatedCount: 0,
+      });
+    }
+
+    let updatedCount = 0;
+    let skippedCount = 0;
+
+    // 4. Recalculate every application's score
+    for (const application of applications) {
+      const developer = application.student;
+
+      // Skip applications whose student account no longer exists
+      if (!developer) {
+        skippedCount++;
+        continue;
+      }
+
+      const compatibility = calculateMatchingScore({
+        developer,
+        project,
+      });
+
+      // 5. Update stored compatibility data
+      application.compatibilityScore = compatibility.score;
+
+      application.compatibilityBreakdown =
+        compatibility.breakdown;
+
+application.matchingWeightsUsed =
+  compatibility.weights;
+
+application.matchedSkills =
+  compatibility.matchedSkills;
+
+application.missingSkills =
+  compatibility.missingSkills;
+
+await application.save();
+
+      updatedCount++;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Applicant scores recalculated successfully.",
+      updatedCount,
+      skippedCount,
+    });
+
+  } catch (error) {
+    console.error("Recalculate scores error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to recalculate applicant scores.",
+    });
+  }
+};
+
 const getApplicants = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -331,5 +428,5 @@ const getApplicationById = async (req, res) => {
   }
 };
 module.exports = {
-  applyToProject,getApplicants,getMyApplications,updateApplicationStatus,getApplicationById,
+  applyToProject,getApplicants,getMyApplications,updateApplicationStatus,getApplicationById,recalculateProjectScores,
 };

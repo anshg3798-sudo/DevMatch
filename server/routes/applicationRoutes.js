@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const { applyToProject,getApplicants,getMyApplications,updateApplicationStatus,getApplicationById, } = require("../controllers/applicationController");
+const { applyToProject,getApplicants,getMyApplications,updateApplicationStatus,getApplicationById,recalculateProjectScores, } = require("../controllers/applicationController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const { isStudent,isRecruiter } = require("../middleware/roleMiddleware");
@@ -19,6 +19,12 @@ router.get(
     isRecruiter,
     getApplicants
 );
+router.post(
+  "/project/:projectId/recalculate",
+  authMiddleware,
+  isRecruiter,
+  recalculateProjectScores
+);
 router.get(
   "/my",
   authMiddleware,
@@ -31,6 +37,7 @@ router.get(
   isRecruiter,
   getApplicationById
 );
+
 router.patch(
     "/:applicationId/status",
     authMiddleware,

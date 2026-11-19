@@ -89,13 +89,15 @@ projects: [
       default: "",
       trim: true,
     },
-    verification: {
+   
+verification: {
   status: {
     type: String,
     enum: [
       "Not Verified",
       "Verified",
-      "Failed"
+      "Failed",
+      "Unable to Verify",
     ],
     default: "Not Verified",
   },
@@ -120,6 +122,11 @@ projects: [
     default: [],
   },
 
+  detectedTechnologies: {
+    type: [String],
+    default: [],
+  },
+
   matchedTechnologies: {
     type: [String],
     default: [],
@@ -130,11 +137,30 @@ projects: [
     default: [],
   },
 
+  // Detailed project relevance information
+  relevance: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
+
+  // Project structure and domain evidence
+  projectEvidence: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
+
+  // Ownership and authenticity analysis
+  authenticity: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null,
+  },
+
   verifiedAt: {
     type: Date,
     default: null,
   },
 },
+ 
   },
 ],
 resumeUrl: {

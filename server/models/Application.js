@@ -60,6 +60,13 @@ missingSkills: {
       enum: ["Pending", "Accepted", "Rejected"],
       default: "Pending",
     },
+    matchingWeightsUsed: {
+  skills: { type: Number, default: 40 },
+  availability: { type: Number, default: 20 },
+  experience: { type: Number, default: 15 },
+  communication: { type: Number, default: 15 },
+  projects: { type: Number, default: 10 },
+},
   },
   {
     timestamps: true,

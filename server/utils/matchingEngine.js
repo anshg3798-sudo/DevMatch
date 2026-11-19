@@ -1,138 +1,170 @@
-const calculateMatchingScore = ({
-  developer,
-  project,
-}) => {
-  /*
-    Weighting:
 
-    Skills        40%
-    Availability  20%
-    Experience    15%
-    Communication 15%
-    Projects      10%
-  */
+const DEFAULT_WEIGHTS = {
+  skills: 40,
+  availability: 20,
+  experience: 15,
+  communication: 15,
+  projects: 10,
+};
 
-  const developerSkills = (developer.skills || []).map(
-    (skill) => skill.toLowerCase().trim()
+// Normalize skill names so equivalent technologies match.
+const normalizeSkill = (skill) => {
+  const value = String(skill || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  const aliases = {
+    "react.js": "react",
+    "reactjs": "react",
+    "node.js": "node",
+    "nodejs": "node",
+    "mongodb": "mongodb",
+    "mongo db": "mongodb",
+    "express.js": "express",
+    "expressjs": "express",
+    "next.js": "nextjs",
+  };
+
+  return aliases[value] || value;
+};
+
+const safeNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, number) : fallback;
+};
+
+const calculateMatchingScore = ({ developer, project }) => {
+  const weights = {
+    ...DEFAULT_WEIGHTS,
+    ...(project.matchingWeights?.toObject?.() ||
+      project.matchingWeights ||
+      {}),
+  };
+
+  const totalWeight = Object.values(weights).reduce(
+    (sum, weight) => sum + safeNumber(weight),
+    0
   );
 
-  const requiredSkills = (
-    project.requiredSkills || []
-  ).map((skill) => skill.toLowerCase().trim());
+  if (totalWeight !== 100) {
+    throw new Error("Matching weights must total 100.");
+  }
 
-  const matchedSkills = requiredSkills.filter(
-    (skill) =>
-      developerSkills.includes(skill)
+  // -------------------------
+  // SKILLS - Recruiter weight
+  // -------------------------
+
+  const developerSkills = [
+    ...new Set((developer.skills || []).map(normalizeSkill).filter(Boolean)),
+  ];
+
+  const requiredSkills = [
+    ...new Set((project.requiredSkills || []).map(normalizeSkill).filter(Boolean)),
+  ];
+
+  const matchedSkills = requiredSkills.filter((skill) =>
+    developerSkills.includes(skill)
   );
 
   const missingSkills = requiredSkills.filter(
-    (skill) =>
-      !developerSkills.includes(skill)
+    (skill) => !developerSkills.includes(skill)
   );
-
-  // -------------------------
-  // Skills - 40%
-  // -------------------------
 
   const skillScore =
     requiredSkills.length === 0
       ? 100
-      : (matchedSkills.length /
-          requiredSkills.length) *
-        100;
+      : (matchedSkills.length / requiredSkills.length) * 100;
 
   // -------------------------
-  // Experience - 15%
+  // EXPERIENCE
   // -------------------------
 
-  const experienceRequired =
-    project.experienceRequired || 0;
+  const experienceRequired = safeNumber(project.experienceRequired);
+  const experience = safeNumber(developer.experienceYears);
 
   const experienceScore =
     experienceRequired === 0
       ? 100
-      : Math.min(
-          (developer.experienceYears /
-            experienceRequired) *
-            100,
-          100
-        );
+      : Math.min((experience / experienceRequired) * 100, 100);
 
   // -------------------------
-  // Availability - 20%
+  // AVAILABILITY
   // -------------------------
 
-  const availabilityRequired =
-    project.availabilityRequired || 0;
+  const availabilityRequired = safeNumber(project.availabilityRequired);
+  const availability = safeNumber(developer.availabilityHours);
 
   const availabilityScore =
     availabilityRequired === 0
       ? 100
       : Math.min(
-          (developer.availabilityHours /
-            availabilityRequired) *
-            100,
+          (availability / availabilityRequired) * 100,
           100
         );
 
   // -------------------------
-  // Communication - 15%
+  // COMMUNICATION
   // -------------------------
 
-  const communicationRequired =
-    project.communicationRequired || 3;
+  const communicationRequired = safeNumber(
+    project.communicationRequired,
+    3
+  );
+
+  const communication = safeNumber(developer.communicationRating);
 
   const communicationScore =
     communicationRequired === 0
       ? 100
       : Math.min(
-          (developer.communicationRating /
-            communicationRequired) *
-            100,
+          (communication / communicationRequired) * 100,
           100
         );
 
   // -------------------------
-  // Projects - 10%
+  // PROJECTS
   // -------------------------
 
-  const projectsScore =
-    Math.min(
-      (developer.projectsCount / 5) * 100,
-      100
-    );
+  const projectsCount = safeNumber(
+    developer.projectsCount,
+    developer.projects?.length || 0
+  );
+
+  // Maximum reference: 5 projects.
+  const projectsScore = Math.min(
+    (projectsCount / 5) * 100,
+    100
+  );
 
   // -------------------------
-  // Final Score
+  // FACTOR BREAKDOWN
+  // -------------------------
+
+  const breakdown = {
+    skills: Math.round(skillScore),
+    availability: Math.round(availabilityScore),
+    experience: Math.round(experienceScore),
+    communication: Math.round(communicationScore),
+    projects: Math.round(projectsScore),
+  };
+
+  // -------------------------
+  // WEIGHTED FINAL SCORE
   // -------------------------
 
   const score = Math.round(
-    skillScore * 0.40 +
-    availabilityScore * 0.20 +
-    experienceScore * 0.15 +
-    communicationScore * 0.15 +
-    projectsScore * 0.10
+    Object.keys(weights).reduce(
+      (total, factor) =>
+        total + breakdown[factor] * weights[factor] / 100,
+      0
+    )
   );
 
   return {
     score,
-
-    breakdown: {
-      skills: Math.round(skillScore),
-      availability: Math.round(
-        availabilityScore
-      ),
-      experience: Math.round(
-        experienceScore
-      ),
-      communication: Math.round(
-        communicationScore
-      ),
-      projects: Math.round(
-        projectsScore
-      ),
-    },
-
+    breakdown,
+    weights,
     matchedSkills,
     missingSkills,
   };
@@ -140,4 +172,6 @@ const calculateMatchingScore = ({
 
 module.exports = {
   calculateMatchingScore,
+  DEFAULT_WEIGHTS,
+  normalizeSkill,
 };

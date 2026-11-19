@@ -40,6 +40,44 @@ availabilityRequired: {
   default: 0,
   min: 0,
 },
+
+matchingWeights: {
+  skills: {
+    type: Number,
+    default: 40,
+    min: 0,
+    max: 100,
+  },
+
+  availability: {
+    type: Number,
+    default: 20,
+    min: 0,
+    max: 100,
+  },
+
+  experience: {
+    type: Number,
+    default: 15,
+    min: 0,
+    max: 100,
+  },
+
+  communication: {
+    type: Number,
+    default: 15,
+    min: 0,
+    max: 100,
+  },
+
+  projects: {
+    type: Number,
+    default: 10,
+    min: 0,
+    max: 100,
+  },
+},
+
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",

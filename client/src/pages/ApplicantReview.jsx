@@ -11,8 +11,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  ShieldCheck,
-  ShieldX,
+
 } from "lucide-react";
 
 import DashboardLayout from "../components/dashboard/DashboardLayout";
@@ -176,7 +175,13 @@ const ApplicantReview = () => {
     application.compatibilityScore ?? 0;
 
   const status = application.status || "Pending";
-
+  const matchingWeights = application.matchingWeightsUsed || {
+  skills: 40,
+  availability: 20,
+  experience: 15,
+  communication: 15,
+  projects: 10,
+};
   /*
    * Depending on how you store GitHub verification,
    * it can come from either:
@@ -186,10 +191,13 @@ const ApplicantReview = () => {
    * student.githubVerification
    */
 
-  const githubVerification =
-    application.githubVerification ||
-    student.githubVerification ||
-    null;
+  const studentProjects = Array.isArray(student.projects)
+  ? student.projects
+  : [];
+
+const githubProjects = studentProjects.filter(
+  (project) => project?.githubUrl
+);
 
   // =========================================================
   // RENDER
@@ -314,39 +322,39 @@ const ApplicantReview = () => {
             requirements.
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-5">
+         <div className="mt-6 grid gap-4 md:grid-cols-5">
 
-            <ScoreCard
-              title="Skills"
-              score={breakdown.skills ?? 0}
-              weight="40%"
-            />
+  <ScoreCard
+    title="Skills"
+    score={breakdown.skills ?? 0}
+    weight={`${matchingWeights.skills}%`}
+  />
 
-            <ScoreCard
-              title="Availability"
-              score={breakdown.availability ?? 0}
-              weight="20%"
-            />
+  <ScoreCard
+    title="Availability"
+    score={breakdown.availability ?? 0}
+    weight={`${matchingWeights.availability}%`}
+  />
 
-            <ScoreCard
-              title="Experience"
-              score={breakdown.experience ?? 0}
-              weight="15%"
-            />
+  <ScoreCard
+    title="Experience"
+    score={breakdown.experience ?? 0}
+    weight={`${matchingWeights.experience}%`}
+  />
 
-            <ScoreCard
-              title="Communication"
-              score={breakdown.communication ?? 0}
-              weight="15%"
-            />
+  <ScoreCard
+    title="Communication"
+    score={breakdown.communication ?? 0}
+    weight={`${matchingWeights.communication}%`}
+  />
 
-            <ScoreCard
-              title="Projects"
-              score={breakdown.projects ?? 0}
-              weight="10%"
-            />
+  <ScoreCard
+    title="Projects"
+    score={breakdown.projects ?? 0}
+    weight={`${matchingWeights.projects}%`}
+  />
 
-          </div>
+</div>
 
         </div>
 
@@ -533,282 +541,60 @@ const ApplicantReview = () => {
 
         </div>
 
-        {/* ================================================= */}
-        {/* GITHUB VERIFICATION */}
-        {/* ================================================= */}
+       
+{/* ================================================= */}
+{/* GITHUB PROJECT VERIFICATION */}
+{/* ================================================= */}
+
+<div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+  <div className="flex items-center gap-3">
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+      <ExternalLink size={22} />
+    </div>
+
+    <div>
+      <h2 className="text-xl font-semibold text-white">
+        GitHub Project Verification
+      </h2>
+      <p className="text-sm text-zinc-500">
+        Repository analysis, detected technologies and project evidence.
+      </p>
+    </div>
+  </div>
+
+  {/* GitHub Profile */}
+  {student.github && (
+    <a
+      href={student.github}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-5 inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-3 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+    >
+      <ExternalLink size={17} />
+      Open GitHub Profile
+      <ExternalLink size={14} />
+    </a>
+  )}
+
+  {/* Candidate Projects */}
+  <div className="mt-6 space-y-5">
+    {githubProjects.length > 0 ? (
+      githubProjects.map((project, index) => (
+        <GitHubProjectVerification
+          key={project._id || `${project.name}-${index}`}
+          project={project}
+        />
+      ))
+    ) : (
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+        <p className="text-sm text-zinc-400">
+          No GitHub projects have been added to this developer's profile.
+        </p>
+      </div>
+    )}
+  </div>
+</div>
 
-        <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
-
-          <div className="flex items-center gap-3">
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
-              <ExternalLink size={22} />
-            </div>
-
-            <div>
-
-              <h2 className="text-xl font-semibold text-white">
-                GitHub Project Verification
-              </h2>
-
-              <p className="text-sm text-zinc-500">
-                Verification details for the candidate's
-                GitHub project.
-              </p>
-
-            </div>
-
-          </div>
-
-          {/* GitHub Profile */}
-
-          <div className="mt-5">
-
-            {student.github ? (
-              <a
-                href={student.github}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-3 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
-              >
-                <ExternalLink size={18} />
-
-                Open GitHub
-
-                <ExternalLink size={15} />
-              </a>
-            ) : (
-              <p className="text-sm text-zinc-500">
-                No GitHub profile added.
-              </p>
-            )}
-
-          </div>
-
-          {/* Verification Result */}
-
-          <div className="mt-6">
-
-            {githubVerification ? (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
-
-                {/* Status */}
-
-                <div className="flex items-center justify-between">
-
-                  <div className="flex items-center gap-3">
-
-                    {githubVerification.status ===
-                    "Verified" ? (
-                      <ShieldCheck
-                        size={24}
-                        className="text-emerald-400"
-                      />
-                    ) : (
-                      <ShieldX
-                        size={24}
-                        className="text-red-400"
-                      />
-                    )}
-
-                    <div>
-
-                      <p className="text-sm text-zinc-500">
-                        Verification Status
-                      </p>
-
-                      <p
-                        className={`font-semibold ${
-                          githubVerification.status ===
-                          "Verified"
-                            ? "text-emerald-400"
-                            : "text-red-400"
-                        }`}
-                      >
-                        {githubVerification.status ||
-                          "Unknown"}
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* Verification Checks */}
-
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-
-                  <VerificationItem
-                    label="Repository"
-                    value={
-                      githubVerification.repositoryExists
-                    }
-                  />
-
-                  <VerificationItem
-                    label="README"
-                    value={
-                      githubVerification.hasReadme
-                    }
-                  />
-
-                  <VerificationItem
-                    label="Code"
-                    value={
-                      githubVerification.hasCode
-                    }
-                  />
-
-                </div>
-
-                {/* Detected Languages */}
-
-                <div className="mt-6">
-
-                  <p className="text-sm font-medium text-zinc-400">
-                    Detected Languages
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-
-                    {githubVerification
-                      .detectedLanguages?.length >
-                    0 ? (
-                      githubVerification.detectedLanguages.map(
-                        (language, index) => (
-                          <span
-                            key={`${language}-${index}`}
-                            className="rounded-lg bg-zinc-800 px-3 py-2 text-xs text-zinc-300"
-                          >
-                            {language}
-                          </span>
-                        )
-                      )
-                    ) : (
-                      <p className="text-sm text-zinc-600">
-                        No languages detected.
-                      </p>
-                    )}
-
-                  </div>
-
-                </div>
-
-                {/* Detected Technologies */}
-
-                <div className="mt-6">
-
-                  <p className="text-sm font-medium text-zinc-400">
-                    Detected Technologies
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-
-                    {githubVerification
-                      .detectedTechnologies?.length >
-                    0 ? (
-                      githubVerification.detectedTechnologies.map(
-                        (technology, index) => (
-                          <span
-                            key={`${technology}-${index}`}
-                            className="rounded-lg bg-indigo-500/10 px-3 py-2 text-xs text-indigo-400"
-                          >
-                            {technology}
-                          </span>
-                        )
-                      )
-                    ) : (
-                      <p className="text-sm text-zinc-600">
-                        No technologies detected.
-                      </p>
-                    )}
-
-                  </div>
-
-                </div>
-
-                {/* Matched Technologies */}
-
-                <div className="mt-6">
-
-                  <p className="text-sm font-medium text-zinc-400">
-                    Matched Technologies
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-
-                    {githubVerification
-                      .matchedTechnologies?.length >
-                    0 ? (
-                      githubVerification.matchedTechnologies.map(
-                        (technology, index) => (
-                          <span
-                            key={`${technology}-${index}`}
-                            className="rounded-lg bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400"
-                          >
-                            {technology}
-                          </span>
-                        )
-                      )
-                    ) : (
-                      <p className="text-sm text-zinc-600">
-                        No matched technologies.
-                      </p>
-                    )}
-
-                  </div>
-
-                </div>
-
-                {/* Missing Technologies */}
-
-                <div className="mt-6">
-
-                  <p className="text-sm font-medium text-zinc-400">
-                    Missing Technologies
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-
-                    {githubVerification
-                      .missingTechnologies?.length >
-                    0 ? (
-                      githubVerification.missingTechnologies.map(
-                        (technology, index) => (
-                          <span
-                            key={`${technology}-${index}`}
-                            className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400"
-                          >
-                            {technology}
-                          </span>
-                        )
-                      )
-                    ) : (
-                      <p className="text-sm text-zinc-600">
-                        No missing technologies.
-                      </p>
-                    )}
-
-                  </div>
-
-                </div>
-
-              </div>
-            ) : (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
-
-                <p className="text-sm text-zinc-500">
-                  GitHub verification information is not
-                  available for this applicant.
-                </p>
-
-              </div>
-            )}
-
-          </div>
-
-        </div>
 
         {/* ================================================= */}
         {/* DEVELOPER LINKS */}
@@ -945,6 +731,319 @@ const ApplicantReview = () => {
 
       </div>
     </DashboardLayout>
+  );
+};
+
+// =========================================================
+// GITHUB PROJECT VERIFICATION CARD
+// =========================================================
+
+const GitHubProjectVerification = ({ project }) => {
+  const verification = project?.verification || null;
+
+  const evidence = verification?.projectEvidence || {};
+  const authenticity = verification?.authenticity || {};
+  const ownership = authenticity?.ownership || {};
+
+  const renderCheck = (label, value) => (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+      <span className="text-sm text-zinc-400">{label}</span>
+
+      {value === true ? (
+        <span className="flex items-center gap-2 text-sm text-emerald-400">
+          <CheckCircle size={16} />
+          Passed
+        </span>
+      ) : value === false ? (
+        <span className="flex items-center gap-2 text-sm text-red-400">
+          <XCircle size={16} />
+          Not found
+        </span>
+      ) : (
+        <span className="text-sm text-zinc-500">Unknown</span>
+      )}
+    </div>
+  );
+
+  const renderList = (title, items, colorClass) => (
+    <div>
+      <p className="mb-3 text-sm font-medium text-zinc-400">
+        {title}
+      </p>
+
+      {Array.isArray(items) && items.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {items.map((item, index) => (
+            <span
+              key={`${item}-${index}`}
+              className={`rounded-lg px-3 py-2 text-xs ${colorClass}`}
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-zinc-600">None found.</p>
+      )}
+    </div>
+  );
+
+  const status = verification?.status || "Not Verified";
+
+  const statusStyle =
+    status === "Verified"
+      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+      : status === "Failed"
+      ? "bg-red-500/10 text-red-400 border-red-500/20"
+      : status === "Unable to Verify"
+      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+      : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+      {/* Project Header */}
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <div>
+          <h3 className="text-lg font-semibold text-white">
+            {project.name || "Untitled Project"}
+          </h3>
+
+          {project.description && (
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
+              {project.description}
+            </p>
+          )}
+        </div>
+
+        <span
+          className={`w-fit rounded-full border px-3 py-1.5 text-xs font-semibold ${statusStyle}`}
+        >
+          {status}
+        </span>
+      </div>
+
+      {/* Repository Link */}
+      {project.githubUrl && (
+        <a
+          href={project.githubUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+        >
+          <ExternalLink size={16} />
+          Open Repository
+        </a>
+      )}
+
+      {/* Claimed Technologies */}
+      {project.technologies?.length > 0 && (
+        <div className="mt-5">
+          {renderList(
+            "Technologies claimed by candidate",
+            project.technologies,
+            "bg-zinc-800 text-zinc-300"
+          )}
+        </div>
+      )}
+
+      {!verification ? (
+        <div className="mt-5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+          <p className="text-sm font-medium text-amber-400">
+            Verification not performed
+          </p>
+          <p className="mt-1 text-sm text-zinc-400">
+            This project has a GitHub repository, but no verification
+            report has been saved yet.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Verification Error */}
+          {verification.error?.message && (
+            <div className="mt-5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+              <p className="text-sm font-medium text-amber-400">
+                Verification issue
+              </p>
+              <p className="mt-1 text-sm text-zinc-400">
+                {verification.error.message}
+              </p>
+            </div>
+          )}
+
+          {/* Basic Checks */}
+          <div className="mt-6">
+            <h4 className="mb-3 font-medium text-white">
+              Repository Checks
+            </h4>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              {renderCheck(
+                "Repository exists",
+                verification.repositoryExists
+              )}
+
+              {renderCheck(
+                "README found",
+                verification.hasReadme
+              )}
+
+              {renderCheck(
+                "Code found",
+                verification.hasCode
+              )}
+            </div>
+          </div>
+
+          {/* Scores */}
+          {(typeof authenticity.score === "number" ||
+            typeof evidence.score === "number" ||
+            typeof authenticity.technologyScore === "number") && (
+            <div className="mt-6">
+              <h4 className="mb-3 font-medium text-white">
+                Verification Scores
+              </h4>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  {
+                    label: "Authenticity",
+                    value: authenticity.score,
+                  },
+                  {
+                    label: "Project Evidence",
+                    value: evidence.score,
+                  },
+                  {
+                    label: "Technology Match",
+                    value: authenticity.technologyScore,
+                  },
+                ]
+                  .filter((item) => typeof item.value === "number")
+                  .map((item) => (
+                    <div
+                      key={item.label}
+                      className="rounded-lg border border-zinc-800 bg-zinc-900 p-4"
+                    >
+                      <p className="text-xs text-zinc-500">
+                        {item.label}
+                      </p>
+                      <p className="mt-2 text-2xl font-bold text-white">
+                        {Math.round(item.value)}%
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Technology Details */}
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            {renderList(
+              "Detected Languages",
+              verification.detectedLanguages,
+              "bg-indigo-500/10 text-indigo-400"
+            )}
+
+            {renderList(
+              "Detected Technologies",
+              verification.detectedTechnologies,
+              "bg-indigo-500/10 text-indigo-400"
+            )}
+
+            {renderList(
+              "Matched Technologies",
+              verification.matchedTechnologies,
+              "bg-emerald-500/10 text-emerald-400"
+            )}
+
+            {renderList(
+              "Missing Technologies",
+              verification.missingTechnologies,
+              "bg-red-500/10 text-red-400"
+            )}
+          </div>
+
+          {/* Project Evidence */}
+          {evidence.domains?.length > 0 && (
+            <div className="mt-6">
+              {renderList(
+                "Detected Project Domains",
+                evidence.domains,
+                "bg-violet-500/10 text-violet-400"
+              )}
+            </div>
+          )}
+
+          {authenticity.domainEvidence && (
+            <div className="mt-6 rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+              <h4 className="mb-3 font-medium text-white">
+                Domain Evidence
+              </h4>
+              <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-zinc-400">
+                {JSON.stringify(authenticity.domainEvidence, null, 2)}
+              </pre>
+            </div>
+          )}
+
+          {/* Ownership Evidence */}
+          {authenticity.ownership && (
+            <div className="mt-6 rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+              <h4 className="mb-4 font-medium text-white">
+                Repository Ownership Evidence
+              </h4>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs text-zinc-500">
+                    Candidate GitHub
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-300">
+                    {ownership.candidateGithub || "Not available"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-zinc-500">
+                    Repository Owner
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-300">
+                    {ownership.repositoryOwner || "Not available"}
+                  </p>
+                </div>
+
+                {renderCheck(
+                  "Owner username matches",
+                  ownership.ownerMatches
+                )}
+
+                {renderCheck(
+                  "Candidate is a contributor",
+                  ownership.candidateIsContributor
+                )}
+              </div>
+
+              <p className="mt-4 text-xs leading-5 text-zinc-500">
+                These checks provide public repository ownership
+                evidence. They do not independently prove account
+                control or code authorship.
+              </p>
+            </div>
+          )}
+
+          {/* Verification Time */}
+          <div className="mt-6 border-t border-zinc-800 pt-4">
+            <p className="text-xs text-zinc-500">
+              Verification time
+            </p>
+            <p className="mt-1 text-sm text-zinc-300">
+              {verification.verifiedAt
+                ? new Date(verification.verifiedAt).toLocaleString()
+                : "Not available"}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 
