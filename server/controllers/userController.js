@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { normalizeEmail, isValidEmail } = require("../utils/email");
 const fs = require("fs");
 const path = require("path");
 const {
@@ -58,9 +59,10 @@ const updateProfile = async (req, res) => {
     }
 
     if (email !== undefined) {
-      const normalizedEmail = email
-        .trim()
-        .toLowerCase();
+      const normalizedEmail = normalizeEmail(email);
+      if (!isValidEmail(normalizedEmail)) {
+        return res.status(400).json({ success: false, message: "Enter a valid email address." });
+      }
 
       const existingUser = await User.findOne({
         email: normalizedEmail,

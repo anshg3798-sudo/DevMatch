@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     // Get Authorization header
     const authHeader = req.headers.authorization;
@@ -18,6 +19,10 @@ const protect = (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("passwordVersion");
+    if (!user || user.passwordVersion !== decoded.passwordVersion) {
+      return res.status(401).json({ success: false, message: "Invalid or expired token" });
+    }
 
     // Store decoded user info in request
     req.user = decoded;

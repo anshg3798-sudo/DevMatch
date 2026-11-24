@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import PasswordRecovery from "./pages/PasswordRecovery";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -32,6 +33,9 @@ function App() {
                     path="/login"
                     element={<Login />}
                 />
+
+                <Route path="/forgot-password" element={<PasswordRecovery key="forgot" />} />
+                <Route path="/reset-password" element={<PasswordRecovery key="reset" reset />} />
 
                 <Route
                     path="/signup"

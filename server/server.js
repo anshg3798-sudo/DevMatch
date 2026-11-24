@@ -6,10 +6,11 @@ const authRoutes = require("./routes/authRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const userRoutes = require("./routes/userRoutes");
 const path = require("path");
+const { startSelectionEmailWorker } = require("./services/selectionEmail");
 // Load environment variables
 dotenv.config();
 
-connectDB();
+connectDB().then(startSelectionEmailWorker);
 
 // Create Express app
 const app = express();

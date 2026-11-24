@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
+import PasswordInput from "../components/auth/PasswordInput";
 import { signupUser } from "../services/authService";
 const Signup = () => {
     const navigate = useNavigate();
@@ -120,12 +121,13 @@ if (
                     </div>
 
                     <div>
-                        <label className="mb-2 block text-sm text-zinc-300">
+                        <label htmlFor="signup-password" className="mb-2 block text-sm text-zinc-300">
                             Password
                         </label>
 
-                        <input
-                            type="password"
+                        <PasswordInput
+                            id="signup-password"
+                            autoComplete="new-password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}

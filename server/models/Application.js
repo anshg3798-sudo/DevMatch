@@ -60,6 +60,20 @@ missingSkills: {
       enum: ["Pending", "Accepted", "Rejected"],
       default: "Pending",
     },
+    decisionId: String,
+    decidedAt: Date,
+    selectionEmail: {
+      type: new mongoose.Schema({
+        to: String,
+        projectTitle: String,
+        decisionId: String,
+        status: { type: String, enum: ["Accepted", "Rejected"] },
+        nextAttemptAt: { type: Date, index: true },
+        retryUntil: Date,
+        sentAt: Date,
+      }, { _id: false }),
+      select: false,
+    },
     matchingWeightsUsed: {
   skills: { type: Number, default: 40 },
   availability: { type: Number, default: 20 },

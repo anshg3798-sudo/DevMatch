@@ -18,8 +18,21 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
     },
+
+    oauthIdentity: {
+      type: String,
+      unique: true,
+      sparse: true,
+      select: false,
+    },
+
+    googleIdentity: { type: String, unique: true, sparse: true, select: false },
+    githubIdentity: { type: String, unique: true, sparse: true, select: false },
+    passwordResetDigest: { type: String, select: false },
+    passwordResetExpiresAt: { type: Date, select: false },
+    passwordResetRequestedAt: { type: Date, select: false },
+    passwordVersion: { type: String, select: false },
 
     role: {
       type: String,
@@ -177,5 +190,7 @@ resumeFileName: {
     timestamps: true,
   }
 );
+
+userSchema.index({ passwordResetDigest: 1 }, { sparse: true });
 
 module.exports = mongoose.model("User", userSchema);

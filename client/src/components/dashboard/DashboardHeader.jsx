@@ -1,4 +1,5 @@
 import { Bell } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const DashboardHeader = () => {
@@ -29,9 +30,9 @@ const DashboardHeader = () => {
           <Bell size={20} />
         </button>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 font-semibold text-white">
+        <Link to="/recruiter/profile" aria-label="My profile" title="My profile" className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 font-semibold text-white hover:bg-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-300">
           {firstLetter}
-        </div>
+        </Link>
 
       </div>
     </header>

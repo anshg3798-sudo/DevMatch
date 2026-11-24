@@ -1,19 +1,38 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { normalizeEmail, isValidEmail } = require("../utils/email");
+
+function loginResponse(user) {
+  return {
+    success: true,
+    message: "Login Successful",
+    token: jwt.sign(
+      { id: user._id, role: user.role, passwordVersion: user.passwordVersion },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    ),
+    user: { id: user._id, name: user.name, email: user.email, role: user.role },
+  };
+}
 
 // ======================= SIGNUP =======================
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, password, role } = req.body || {};
+    const email = normalizeEmail(req.body?.email);
 
     // Check required fields
-    if (!name || !email || !password) {
+    if (typeof name !== "string" || !name.trim() || typeof password !== "string" || !password) {
       return res.status(400).json({
         success: false,
         message: "Please fill all required fields",
       });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Enter a valid email address." });
     }
 
     // Check existing user
@@ -40,7 +59,7 @@ const signup = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
-      user,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
 
   } catch (error) {
@@ -58,18 +77,19 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
 
-    const { email, password } = req.body;
+    const { password } = req.body || {};
+    const email = normalizeEmail(req.body?.email);
 
     // Check required fields
-    if (!email || !password) {
+    if (!isValidEmail(email) || typeof password !== "string" || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please fill all fields",
+        message: "Enter a valid email address and password.",
       });
     }
 
     // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+passwordVersion");
 
     if (!user) {
       return res.status(400).json({
@@ -79,7 +99,7 @@ const login = async (req, res) => {
     }
 
     // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = user.password && await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(401).json({
@@ -88,29 +108,7 @@ const login = async (req, res) => {
       });
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Login Successful",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    return res.json(loginResponse(user));
 
   } catch (error) {
     console.error(error);
@@ -125,4 +123,5 @@ const login = async (req, res) => {
 module.exports = {
   signup,
   login,
+  loginResponse,
 };

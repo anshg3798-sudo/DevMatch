@@ -204,110 +204,41 @@ const StudentApplications = () => {
                 {/* Bottom information */}
 
                 <div className="mt-6 grid gap-4 border-t border-zinc-800 pt-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {/* Compatibility */}
-
-                  <div>
-                    <p className="text-xs text-zinc-500">
-                      Compatibility Score
-                    </p>
-
-                    <p className="mt-1 text-2xl font-bold text-indigo-400">
-                      {application.compatibilityScore ??
-                        0}
-                      %
-                    </p>
-                  </div>
-                 {/* Compatibility Breakdown */}
-
-{application.compatibilityBreakdown && (
-  <div className="mt-6 border-t border-zinc-800 pt-5">
-    <p className="text-sm font-medium text-zinc-300">
-      Compatibility Breakdown
-    </p>
-
-    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-
-      {/* Skills */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
-        <p className="text-xs text-zinc-500">
-          Skills
-        </p>
-
-        <p className="mt-1 text-xl font-semibold text-white">
-          {application.compatibilityBreakdown.skills ?? 0}%
-        </p>
-
-        <p className="mt-1 text-xs text-zinc-600">
-          Weight: 40%
-        </p>
-      </div>
-
-      {/* Availability */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
-        <p className="text-xs text-zinc-500">
-          Availability
-        </p>
-
-        <p className="mt-1 text-xl font-semibold text-white">
-          {application.compatibilityBreakdown.availability ?? 0}%
-        </p>
-
-        <p className="mt-1 text-xs text-zinc-600">
-          Weight: 20%
-        </p>
-      </div>
-
-      {/* Experience */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
-        <p className="text-xs text-zinc-500">
-          Experience
-        </p>
-
-        <p className="mt-1 text-xl font-semibold text-white">
-          {application.compatibilityBreakdown.experience ?? 0}%
-        </p>
-
-        <p className="mt-1 text-xs text-zinc-600">
-          Weight: 15%
-        </p>
-      </div>
-
-      {/* Communication */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
-        <p className="text-xs text-zinc-500">
-          Communication
-        </p>
-
-        <p className="mt-1 text-xl font-semibold text-white">
-          {application.compatibilityBreakdown.communication ?? 0}%
-        </p>
-
-        <p className="mt-1 text-xs text-zinc-600">
-          Weight: 15%
-        </p>
-      </div>
-
-      {/* Projects */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
-        <p className="text-xs text-zinc-500">
-          Projects
-        </p>
-
-        <p className="mt-1 text-xl font-semibold text-white">
-          {application.compatibilityBreakdown.projects ?? 0}%
-        </p>
-
-        <p className="mt-1 text-xs text-zinc-600">
-          Weight: 10%
-        </p>
-      </div>
-
-    </div>
-  </div>
-)} 
+                  <section className="min-w-0 rounded-2xl border border-indigo-400/20 bg-linear-to-br from-indigo-950/70 via-zinc-900 to-zinc-950 p-5 sm:col-span-2 lg:col-span-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="text-base font-semibold text-white">Compatibility Breakdown</h3>
+                      <p className="rounded-lg bg-indigo-400/15 px-3 py-1.5 text-sm text-indigo-200">
+                        Overall score <strong className="ml-1 text-lg text-white">{application.compatibilityScore ?? 0}%</strong>
+                      </p>
+                    </div>
+                    {application.compatibilityBreakdown && (
+                      <div className="mt-4 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr))]">
+                        {[
+                          ["skills", "Skills", 40],
+                          ["availability", "Availability", 20],
+                          ["experience", "Experience", 15],
+                          ["communication", "Communication", 15],
+                          ["projects", "Projects", 10],
+                        ].map(([key, label, defaultWeight]) => {
+                          const score = application.compatibilityBreakdown[key] ?? 0;
+                          return (
+                            <div key={key} className="min-w-0 rounded-xl border border-white/10 bg-zinc-950/55 p-3">
+                              <p className="break-words text-sm font-medium text-zinc-200">{label}</p>
+                              <p className="mt-1 text-xl font-semibold text-white">{score}%</p>
+                              <div aria-hidden="true" className="my-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                                <div className="h-full rounded-full bg-indigo-400" style={{ width: `${Math.min(100, Math.max(0, score))}%` }} />
+                              </div>
+                              <p className="text-xs text-zinc-400">Weight {application.matchingWeightsUsed?.[key] ?? defaultWeight}%</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </section>
+                  
 {/* Skill Match Details */}
 
-<div className="mt-5 grid gap-5 border-t border-zinc-800 pt-5 md:grid-cols-2">
+<div className="grid gap-5 border-b border-zinc-800 pb-5 sm:col-span-2 md:grid-cols-2 lg:col-span-3">
 
   {/* Matched Skills */}
   <div>

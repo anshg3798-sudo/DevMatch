@@ -1,6 +1,9 @@
+const { randomUUID } = require("node:crypto");
 const Application = require("../models/Application");
 const Project = require("../models/Project");
 const User = require("../models/User");
+const { deliverSelectionEmails } = require("../services/selectionEmail");
+const { isValidEmail, normalizeEmail } = require("../utils/email");
 const {
   calculateMatchingScore,
 } = require("../utils/matchingEngine");
@@ -329,7 +332,7 @@ const updateApplicationStatus = async (req, res) => {
 
         // Only the recruiter who created the project can update it
         if (
-            application.project.createdBy.toString() !== req.user.id
+            !application.project || application.project.createdBy.toString() !== req.user.id
         ) {
             return res.status(403).json({
                 success: false,
@@ -337,14 +340,40 @@ const updateApplicationStatus = async (req, res) => {
             });
         }
 
-        application.status = status;
+        const student = await User.findById(application.student).select("email");
+        const email = normalizeEmail(student?.email);
+        const decisionId = randomUUID();
+        const decidedAt = new Date();
+        const update = { $set: { status, decisionId, decidedAt } };
+        if (isValidEmail(email)) {
+            update.$set.selectionEmail = {
+                decisionId,
+                status,
+                to: email,
+                projectTitle: application.project.title,
+                nextAttemptAt: decidedAt,
+            };
+        } else {
+            update.$unset = { selectionEmail: "" };
+        }
 
-        await application.save();
+        let updatedApplication = await Application.findOneAndUpdate(
+            { _id: application._id, status: { $ne: status } },
+            update,
+            { returnDocument: "after" },
+        );
+        updatedApplication ??= await Application.findById(application._id);
+        
+        if (!updatedApplication) {
+            return res.status(404).json({ success: false, message: "Application not found." });
+        }
+
+        void deliverSelectionEmails();
 
         res.status(200).json({
             success: true,
             message: `Application ${status.toLowerCase()} successfully.`,
-            application,
+            application: { ...updatedApplication.toObject(), project: application.project },
         });
 
     } catch (error) {

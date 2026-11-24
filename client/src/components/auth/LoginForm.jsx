@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import PasswordInput from "./PasswordInput";
 
 import { loginUser } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
@@ -74,6 +75,10 @@ setLoading(false);
                 <input
                     type="email"
                     name="email"
+                    required
+                    autoComplete="email"
+                    maxLength={254}
+                    pattern="[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="you@example.com"
@@ -82,13 +87,15 @@ setLoading(false);
             </div>
 
             <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-300">
+                <label htmlFor="login-password" className="mb-2 block text-sm font-medium text-zinc-300">
                     Password
                 </label>
 
-                <input
-                    type="password"
+                <PasswordInput
+                    id="login-password"
                     name="password"
+                    required
+                    autoComplete="current-password"
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="••••••••"
@@ -97,12 +104,13 @@ setLoading(false);
             </div>
 
             <div className="flex justify-end">
-                <button
-                    type="button"
+                <Link
+                    to="/forgot-password"
+                    state={{ email: formData.email }}
                     className="text-sm text-indigo-400 hover:text-indigo-300"
                 >
                     Forgot Password?
-                </button>
+                </Link>
             </div>
 
             <button
