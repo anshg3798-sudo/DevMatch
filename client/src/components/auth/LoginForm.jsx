@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { loginDestination } from "./loginDestination";
 import PasswordInput from "./PasswordInput";
 
 import { loginUser } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 const LoginForm = () => {
     const navigate = useNavigate();
+    const { state } = useLocation();
     const { login } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -41,11 +43,7 @@ setError("");
         const data = await loginUser(formData);
        login(data.user, data.token);
 
-if (data.user.role === "recruiter") {
-    navigate("/recruiter/dashboard");
-} else {
-    navigate("/student/dashboard");
-}
+    navigate(loginDestination(data.user.role, state?.requested), { replace: true });
 
     } catch (error) {
   setError(

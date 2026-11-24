@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { loginDestination } from "./loginDestination";
 import API from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { GoogleIcon, GitHubIcon } from "./ProviderIcons";
 
 const verifierKey = "devmatch.oauth.verifier";
+const destinationKey = "devmatch.oauth.destination";
 const errors = {
   unavailable: "This sign-in provider is unavailable. Try another sign-in method.",
   email: "Verify your primary email address with the provider and try again.",
@@ -20,7 +22,8 @@ function base64url(bytes) {
 const SocialLoginButtons = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [role, setRole] = useState("student");
+  const { state } = useLocation();
+  const [role, setRole] = useState(state?.requested === "/recruiter/search" ? "recruiter" : "student");
   const [redirect] = useState(() => {
     const params = new URLSearchParams(window.location.hash.slice(1));
     const code = params.get("oauthCode");
@@ -31,7 +34,7 @@ const SocialLoginButtons = () => {
     if (errorKey || !verifier) {
       return { error: Object.hasOwn(errors, errorKey) ? errors[errorKey] : errors.failed };
     }
-    return { code, verifier };
+    return { code, verifier, requested: sessionStorage.getItem(destinationKey) };
   });
   const [busy, setBusy] = useState(Boolean(redirect?.code));
   const [error, setError] = useState(redirect?.error || "");
@@ -43,12 +46,13 @@ const SocialLoginButtons = () => {
     handledRedirect.current = true;
     window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
     sessionStorage.removeItem(verifierKey);
+    sessionStorage.removeItem(destinationKey);
 
     if (redirect.error) return;
-    API.post("/auth/oauth/exchange", redirect)
+    API.post("/auth/oauth/exchange", { code: redirect.code, verifier: redirect.verifier })
       .then(({ data }) => {
         login(data.user, data.token);
-        navigate(`/${data.user.role}/dashboard`, { replace: true });
+        navigate(loginDestination(data.user.role, redirect.requested), { replace: true });
       })
       .catch((failure) => setError(failure.response?.data?.message || errors.failed))
       .finally(() => setBusy(false));
@@ -61,6 +65,7 @@ const SocialLoginButtons = () => {
       const verifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
       const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
       sessionStorage.setItem(verifierKey, verifier);
+      sessionStorage.setItem(destinationKey, state?.requested || "");
       const params = new URLSearchParams({ role, challenge: base64url(new Uint8Array(hash)) });
       window.location.assign(API.getUri({ url: `/auth/oauth/${provider}/start`, params }));
     } catch {

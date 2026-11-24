@@ -8,15 +8,31 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-
-        if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+        function syncSession() {
+            const storedToken = localStorage.getItem("token");
+            const storedUser = localStorage.getItem("user");
+            try {
+                const parsedUser = storedToken && storedUser ? JSON.parse(storedUser) : null;
+                setUser(parsedUser);
+                setToken(parsedUser ? storedToken : null);
+            } catch {
+                setUser(null);
+                setToken(null);
+            }
+            setLoading(false);
         }
-
-        setLoading(false);
+        function onStorage(event) {
+            if (event.storageArea === localStorage && [null, "token", "user"].includes(event.key)) {
+                syncSession();
+            }
+        }
+        window.addEventListener("storage", onStorage);
+        window.addEventListener("pageshow", syncSession);
+        syncSession();
+        return () => {
+            window.removeEventListener("storage", onStorage);
+            window.removeEventListener("pageshow", syncSession);
+        };
     }, []);
 
     const login = (userData, jwtToken) => {

@@ -68,19 +68,19 @@ export default function StudentNotifications({ studentId }) {
         {unread > 0 && <span aria-hidden="true" className="absolute -right-1 -top-1 rounded-full bg-indigo-500 px-1.5 text-xs font-semibold text-white">{unread}</span>}
       </button>
       <section id="student-notifications" hidden={!open} aria-label="Application notifications"
-        className="absolute -right-12 z-30 mt-3 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-zinc-700 bg-zinc-900 p-4 shadow-xl sm:right-0">
+        className="absolute -right-12 z-30 mt-3 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-zinc-700 bg-zinc-900 p-4 shadow-xl sm:right-0">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-semibold">Notifications</h2>
           {unread > 0 && <button type="button" onClick={() => markRead(decisions)} className="text-xs text-indigo-300 hover:underline">Mark all as read</button>}
         </div>
         {error && <p role="status" className="mt-3 text-sm text-zinc-400">Couldn’t refresh notifications. Retrying shortly.</p>}
         {!error && decisions.length === 0 && <p className="mt-3 text-sm text-zinc-400">{loaded ? "No application decisions yet." : "Loading notifications…"}</p>}
-        <ul className="mt-2 max-h-80 overflow-y-auto">
+        <ul className="mt-2 max-h-[min(28rem,calc(100dvh-11rem))] overflow-y-auto overscroll-contain">
           {decisions.map((decision) => (
-            <li key={decisionKey(decision)} className="border-t border-zinc-800">
+            <li key={decisionKey(decision)}>
               <Link to="/student/applications" onClick={() => { markRead([decision]); setOpen(false); }}
-                className="block rounded-lg p-2 hover:bg-zinc-800">
-                <span className="block text-sm font-medium">{!read.has(decisionKey(decision)) && <span className="mr-2 text-indigo-400" aria-label="Unread">●</span>}{decision.project?.title || "Project application"}</span>
+                className="flex h-16 min-w-0 flex-col justify-center gap-1 border-t border-zinc-800 px-2 hover:bg-zinc-800 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-400">
+                <span className="truncate text-sm font-medium" title={decision.project?.title || "Project application"}>{!read.has(decisionKey(decision)) && <span className="mr-2 text-indigo-400" aria-label="Unread">●</span>}{decision.project?.title || "Project application"}</span>
                 <span className={`text-xs ${decision.status === "Accepted" ? "text-emerald-300" : "text-rose-300"}`}>Application {decision.status.toLowerCase()}</span>
               </Link>
             </li>

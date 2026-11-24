@@ -62,6 +62,18 @@ missingSkills: {
     },
     decisionId: String,
     decidedAt: Date,
+    messages: {
+      type: [new mongoose.Schema({
+        senderRole: { type: String, enum: ["student", "recruiter"], required: true },
+        text: { type: String, required: true, maxlength: 2000 },
+        sentAt: { type: Date, required: true },
+      })],
+      default: undefined,
+      select: false,
+    },
+    studentUnread: Number,
+    recruiterUnread: Number,
+    lastMessageAt: Date,
     selectionEmail: {
       type: new mongoose.Schema({
         to: String,

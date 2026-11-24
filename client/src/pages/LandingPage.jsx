@@ -7,8 +7,10 @@ function LandingPage() {
     <>
       <Navbar />
       <Hero />
-      <Features />
-      <HowItWorks />
+      <section id="about" aria-label="About DevMatch" className="scroll-mt-20">
+        <Features />
+        <HowItWorks />
+      </section>
     </>
   );
 }

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import StudentDashboardLayout from "../components/dashboard/StudentDashboardLayout";
+import ConnectGithub from "../components/auth/ConnectGithub";
 
 import {
   getProfile,
@@ -40,6 +41,8 @@ const StudentProfile = () => {
   const [skills, setSkills] = useState("");
 
   const [github, setGithub] = useState("");
+  const [githubAccounts, setGithubAccounts] = useState([]);
+  const [projectAccounts, setProjectAccounts] = useState({});
   const [leetcode, setLeetcode] = useState("");
 
   const [experienceYears, setExperienceYears] = useState(0);
@@ -113,6 +116,7 @@ const StudentProfile = () => {
       );
 
       setGithub(user.github || "");
+      setGithubAccounts(user.githubAccounts || []);
       setLeetcode(user.leetcode || "");
 
       setExperienceYears(
@@ -410,7 +414,8 @@ const StudentProfile = () => {
 
     try {
       setVerifyingProjectId(
-        project._id
+        project._id,
+        projectAccounts[project._id] ?? githubAccounts[0]?.id
       );
 
       setError("");
@@ -875,9 +880,7 @@ const StudentProfile = () => {
                         </h4>
 
                         <p className="mt-1 text-sm text-zinc-500">
-                          Verify that this repository
-                          exists and contains the
-                          claimed technologies.
+                          Check the repository, its claimed technologies, and contributions from your connected GitHub account.
                         </p>
                       </div>
 
@@ -918,6 +921,17 @@ const StudentProfile = () => {
                       </button>
                     </div>
 
+                    {githubAccounts.length > 1 && project._id && (
+                      <label className="mt-4 block text-sm text-zinc-300">
+                        GitHub account for this check
+                        <select value={projectAccounts[project._id] ?? githubAccounts[0].id}
+                          onChange={(event) => setProjectAccounts((current) => ({ ...current, [project._id]: event.target.value }))}
+                          className="mt-2 block rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-white">
+                          {githubAccounts.map(({ id, login }) => <option key={id} value={id}>{login ? `@${login}` : `GitHub account ${id}`}</option>)}
+                        </select>
+                      </label>
+                    )}
+
                     {/* PROJECT NOT SAVED */}
 
                     {!project._id && (
@@ -939,7 +953,7 @@ const StudentProfile = () => {
                         {/* STATUS */}
 
                         <div className="flex items-center gap-3">
-                          {project.verification
+                          {project.verification.contributionEvidence && project.verification
                             .status ===
                           "Verified" ? (
                             <CheckCircle2
@@ -960,7 +974,7 @@ const StudentProfile = () => {
 
                             <p
                               className={`text-sm ${
-                                project
+                                project.verification.contributionEvidence && project
                                   .verification
                                   .status ===
                                 "Verified"
@@ -969,9 +983,9 @@ const StudentProfile = () => {
                               }`}
                             >
                               {
-                                project
-                                  .verification
-                                  .status
+                                project.verification.status === "Verified" && !project.verification.contributionEvidence
+                                  ? "Recheck required"
+                                  : project.verification.status
                               }
                             </p>
                           </div>
@@ -1441,6 +1455,8 @@ const StudentProfile = () => {
                 placeholder="https://github.com/username"
                 className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
               />
+              {githubAccounts.length > 0 && <p className="mt-2 text-sm text-emerald-300">{githubAccounts.length} GitHub {githubAccounts.length === 1 ? "account" : "accounts"} connected</p>}
+              <ConnectGithub connected={githubAccounts.length > 0} onConnected={fetchProfile} />
             </div>
 
             {/* LEETCODE */}

@@ -23,6 +23,12 @@ Run `npm run dev --prefix server` and `npm run dev --prefix client` in separate 
 
 Add the callback URLs in the provider consoles. If the Google app is in testing mode, add your testers in the Google console. Choose Candidate or Recruiter when creating an account through social sign-in. Returning users keep their account role and go to their dashboard. DevMatch links existing accounts using a matching verified Gmail or Google Workspace address, or a matching verified primary GitHub email. Use Forgot Password to confirm mailbox access for an existing account with a third-party Google email. GitHub controls the authorization screen and normally skips it after the user grants the requested permissions.
 
+## Verify student GitHub contributions
+
+Students can connect GitHub under the developer profiles section of their student profile. Select **Connect another GitHub account** to add an account, then choose which linked account to check before selecting **Verify Project**. Linked GitHub accounts can also sign into the same DevMatch account. The connection uses the existing GitHub OAuth callback. Optionally set `GITHUB_TOKEN` on the backend to authenticate public repository API requests.
+
+On Applicant Review, recruiters see the linked account, examples of attributed commits or merged pull requests, and project evidence separately. Public repository checks are tied to the default branch commit recorded at verification time. Forks use merged pull requests for attribution because the default branch can contain inherited commits. Re-run older checks to populate the new evidence.
+
 ## Enable password reset emails
 
 Set `RESEND_API_KEY` and either `PASSWORD_RESET_EMAIL_FROM` or `SELECTION_EMAIL_FROM` on the server. Use an address on a verified Resend domain. Set `CLIENT_URL` to the frontend origin so links open the correct app. Password reset links expire after 30 minutes and can be used once. A successful reset expires existing DevMatch sessions for that account.

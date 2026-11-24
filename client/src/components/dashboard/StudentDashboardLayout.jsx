@@ -1,5 +1,6 @@
 import StudentSidebar from "./StudentSidebar";
 import StudentNotifications from "./StudentNotifications";
+import MessageBadge from "./MessageBadge";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -25,7 +26,8 @@ const StudentDashboardLayout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-3">
-          {user?.id && <StudentNotifications key={user.id} studentId={user.id} />}
+          {user?.id && <StudentNotifications key={`notifications:${user.id}`} studentId={user.id} />}
+          <MessageBadge key={`messages:${user?.id}`} role="student" />
           <Link to="/student/profile" aria-label="My profile" title="My profile" className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-500 text-lg font-semibold text-white hover:bg-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-300">
             {name.charAt(0).toUpperCase()}
           </Link>

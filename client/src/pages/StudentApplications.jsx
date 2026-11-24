@@ -9,7 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import StudentDashboardLayout from "../components/dashboard/StudentDashboardLayout";
 import { getMyApplications } from "../services/applicationService";
@@ -330,7 +330,7 @@ const StudentApplications = () => {
                 {/* View project */}
 
                 {project?._id && (
-                  <div className="mt-5 border-t border-zinc-800 pt-5">
+                  <div className="mt-5 flex flex-wrap items-center gap-5 border-t border-zinc-800 pt-5">
                     <button
                       onClick={() =>
                         navigate(
@@ -343,6 +343,12 @@ const StudentApplications = () => {
 
                       <ArrowRight size={16} />
                     </button>
+                    {(application.status === "Accepted" || application.lastMessageAt) && (
+                      <Link to={`/student/messages?application=${application._id}`}
+                        className="rounded-lg border border-indigo-400/40 px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-400/10">
+                        {application.status === "Accepted" ? "Message recruiter" : "View conversation"}
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>

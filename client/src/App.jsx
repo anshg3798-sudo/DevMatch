@@ -20,10 +20,13 @@ import StudentProfile from "./pages/StudentProfile";
 import SearchDevelopers from "./pages/SearchDevelopers";
 import DeveloperDetails from "./pages/DeveloperDetails";
 import ApplicantReview from "./pages/ApplicantReview";
+import ApplicationMessages from "./pages/ApplicationMessages";
 function App() {
     return (
         <BrowserRouter>
             <Routes>
+                <Route path="/student/messages" element={<ProtectedRoute allowedRole="student"><ApplicationMessages role="student" /></ProtectedRoute>} />
+                <Route path="/recruiter/messages" element={<ProtectedRoute allowedRole="recruiter"><ApplicationMessages role="recruiter" /></ProtectedRoute>} />
                 <Route
                     path="/"
                     element={<Landing />}

@@ -49,6 +49,12 @@ function redirectToLogin(res, params) {
   return res.set("Cache-Control", "no-store").redirect(url.href);
 }
 
+function redirectToProfile(res, params) {
+  const url = new URL("/student/profile", clientLogin());
+  url.hash = new URLSearchParams(params).toString();
+  return res.set("Cache-Control", "no-store").redirect(url.href);
+}
+
 async function requestJson(url, options = {}) {
   const response = await fetch(url, { ...options, redirect: "error", signal: AbortSignal.timeout(10000) });
   if (!response.ok) throw new Error("Provider request failed");
@@ -89,22 +95,23 @@ async function getIdentity(provider, config, code, verifier) {
     id: profile.id,
     email: emails.find((email) => email.primary && email.verified)?.email,
     name: profile.name || profile.login,
+    login: profile.login,
   };
 }
 
 function start(req, res) {
   const { provider } = req.params;
   const config = configuration(provider);
-  if (!config) return redirectToLogin(res, { oauthError: "unavailable" });
-
   const { challenge, role } = req.query;
+  const linking = provider === "github" && req.query.intent === "connect";
+  if (!config) return linking ? redirectToProfile(res, { githubError: "unavailable" }) : redirectToLogin(res, { oauthError: "unavailable" });
   if (!isToken(challenge) || !["student", "recruiter"].includes(role)) {
     return redirectToLogin(res, { oauthError: "failed" });
   }
 
   const state = randomToken();
   const verifier = randomToken();
-  const transaction = jwt.sign({ state, verifier, challenge, role, provider }, transactionKey(), {
+  const transaction = jwt.sign({ state, verifier, challenge, role, provider, linking }, transactionKey(), {
     audience: "devmatch-oauth",
     expiresIn: "10m",
   });
@@ -132,23 +139,41 @@ async function callback(req, res) {
   const cookie = req.headers.cookie?.match(/(?:^|;\s*)devmatch_oauth=([A-Za-z0-9_.-]+)/)?.[1];
   res.clearCookie("devmatch_oauth", cookieOptions(provider));
 
+  let linking = false;
   try {
     const transaction = jwt.verify(cookie, transactionKey(), {
       audience: "devmatch-oauth",
       algorithms: ["HS256"],
     });
+    linking = transaction.linking === true && provider === "github";
     if (transaction.provider !== provider || transaction.state !== req.query.state ||
         typeof req.query.code !== "string") {
-      return redirectToLogin(res, { oauthError: "failed" });
+      return linking ? redirectToProfile(res, { githubError: "failed" }) : redirectToLogin(res, { oauthError: "failed" });
     }
 
     const identity = await getIdentity(provider, config, req.query.code, transaction.verifier);
     const email = normalizeEmail(identity.email);
     if (!identity.id) return redirectToLogin(res, { oauthError: "failed" });
     const oauthIdentity = `${provider}:${identity.id}`;
+    if (linking) {
+      const code = randomToken();
+      await OAuthLoginCode.create({
+        _id: digest(code),
+        browserChallenge: transaction.challenge,
+        linkIdentity: oauthIdentity,
+        linkLogin: identity.login,
+        expiresAt: new Date(Date.now() + 60_000),
+      });
+      return redirectToProfile(res, { githubCode: code });
+    }
     // Wait for the unique email and provider indexes before creating or linking accounts.
     await User.init();
     const providerField = provider === "google" ? "googleIdentity" : "githubIdentity";
+    const identityValue = provider === "github" ? [oauthIdentity] : oauthIdentity;
+    const identityUpdate = { [providerField]: identityValue };
+    if (provider === "github" && identity.login) {
+      identityUpdate[`githubAccountNames.${identity.id}`] = identity.login;
+    }
     const identityFilter = { $or: [{ oauthIdentity }, { [providerField]: oauthIdentity }] };
     let user = await User.findOne(identityFilter);
     if (!user) {
@@ -157,7 +182,7 @@ async function callback(req, res) {
       try {
         user = await User.findOneAndUpdate(
           { [providerField]: oauthIdentity },
-          { $setOnInsert: { name: identity.name || email.split("@")[0], email, role: transaction.role } },
+          { $setOnInsert: { ...identityUpdate, name: identity.name || email.split("@")[0], email, role: transaction.role } },
           { upsert: true, returnDocument: "after" },
         );
       } catch (error) {
@@ -166,7 +191,7 @@ async function callback(req, res) {
         if (!user && canLinkByEmail) {
           user = await User.findOneAndUpdate(
             { email, [providerField]: { $exists: false }, oauthIdentity: { $not: new RegExp(`^${provider}:`) } },
-            { $set: { [providerField]: oauthIdentity } },
+            { $set: identityUpdate },
             { returnDocument: "after" },
           );
         }
@@ -184,7 +209,7 @@ async function callback(req, res) {
     return redirectToLogin(res, { oauthCode: code });
   } catch (error) {
     console.warn("OAuth sign-in failed:", provider, error.name);
-    return redirectToLogin(res, { oauthError: "failed" });
+    return linking ? redirectToProfile(res, { githubError: "failed" }) : redirectToLogin(res, { oauthError: "failed" });
   }
 }
 
@@ -198,6 +223,7 @@ async function exchange(req, res) {
   const loginCode = await OAuthLoginCode.findOneAndDelete({
     _id: digest(code),
     browserChallenge: digest(verifier),
+    linkIdentity: { $exists: false },
     expiresAt: { $gt: new Date() },
   });
   const user = loginCode && await User.findById(loginCode.user).select("+passwordVersion");
@@ -205,5 +231,48 @@ async function exchange(req, res) {
   return res.json(loginResponse(user));
 }
 
-module.exports = { start, callback, exchange };
+async function connectGithub(req, res) {
+  res.set("Cache-Control", "no-store");
+  const { code, verifier } = req.body || {};
+  if (!isToken(code) || !isToken(verifier)) {
+    return res.status(400).json({ message: "Invalid GitHub connection code." });
+  }
+  const record = await OAuthLoginCode.findOneAndDelete({
+    _id: digest(code), browserChallenge: digest(verifier),
+    expiresAt: { $gt: new Date() }, linkIdentity: { $exists: true },
+  });
+  if (!record) return res.status(400).json({ message: "GitHub connection expired. Try again." });
+
+  const identity = record.linkIdentity;
+  if (!/^github:\d+$/.test(identity)) return res.status(400).json({ message: "Invalid GitHub identity." });
+  await User.init();
+  const existing = await User.findOne({ $or: [{ oauthIdentity: identity }, { githubIdentity: identity }] });
+  if (existing && String(existing._id) !== req.user.id) {
+    return res.status(409).json({ message: "That GitHub account is already connected to another DevMatch account." });
+  }
+
+  try {
+    // Existing installations may have stored the first identity as a scalar.
+    const identities = {
+      $cond: [
+        { $isArray: "$githubIdentity" },
+        "$githubIdentity",
+        { $cond: [{ $eq: [{ $type: "$githubIdentity" }, "string"] }, ["$githubIdentity"], []] },
+      ],
+    };
+    const updates = { githubIdentity: { $setUnion: [identities, [identity]] } };
+    if (record.linkLogin) updates[`githubAccountNames.${identity.slice(7)}`] = { $literal: record.linkLogin };
+    const user = await User.findOneAndUpdate(
+      { _id: req.user.id },
+      [{ $set: updates }],
+      { updatePipeline: true },
+    );
+    if (user) return res.json({ success: true });
+  } catch (error) {
+    if (error.code !== 11000) throw error;
+  }
+  return res.status(409).json({ message: "This GitHub account could not be connected because a connection already exists." });
+}
+
+module.exports = { start, callback, exchange, connectGithub };
 

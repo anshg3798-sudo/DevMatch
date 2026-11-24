@@ -8,12 +8,11 @@ const githubApi = axios.create({
   headers: {
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
-    ...(process.env.GITHUB_TOKEN
-      ? {
-          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-        }
-      : {}),
   },
+});
+githubApi.interceptors.request.use((config) => {
+  if (process.env.GITHUB_TOKEN) config.headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  return config;
 });
 
 // =====================================================
@@ -45,38 +44,11 @@ const parseGithubUrl = (githubUrl) => {
     const owner = parts[0];
     const repo = parts[1].replace(/\.git$/i, "");
 
-    if (!owner || !repo) {
+    if (!/^[A-Za-z0-9-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repo)) {
       return null;
     }
 
     return { owner, repo };
-  } catch {
-    return null;
-  }
-};
-
-// =====================================================
-// 2. PARSE GITHUB USERNAME
-// =====================================================
-
-const parseGithubUsername = (githubUrl) => {
-  try {
-    if (typeof githubUrl !== "string" || !githubUrl.trim()) {
-      return null;
-    }
-
-    const url = new URL(githubUrl.trim());
-
-    if (
-      url.protocol !== "https:" ||
-      url.hostname.toLowerCase() !== "github.com"
-    ) {
-      return null;
-    }
-
-    const parts = url.pathname.split("/").filter(Boolean);
-
-    return parts[0] || null;
   } catch {
     return null;
   }
@@ -96,6 +68,21 @@ const normalizeTechnology = (technology) => {
     .trim()
     .replace(/[.\_-]/g, "");
 };
+
+const standaloneLanguages = new Set(["html", "css", "javascript", "typescript", "python", "java", "php", "ruby", "rust"]);
+
+function expandTechnologyClaims(technologies) {
+  if (!Array.isArray(technologies)) return [];
+  return technologies.filter((item) => typeof item === "string")
+    .flatMap((item) => item.split(/[,;\n]+/))
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .flatMap((item) => {
+      const words = item.split(/\s+/);
+      // Expand familiar single-word language lists while preserving names like React Native.
+      return words.every((word) => standaloneLanguages.has(normalizeTechnology(word))) ? words : [item];
+    });
+}
 
 // =====================================================
 // 4. DETECT TECHNOLOGIES FROM package.json
@@ -1365,13 +1352,9 @@ const verifyGithubProject = async ({
   projectName = "",
   projectDescription = "",
   technologies = [],
-  candidateGithub = "",
+  candidateId,
 }) => {
-  technologies = Array.isArray(technologies)
-    ? technologies.filter(
-        (item) => typeof item === "string" && item.trim()
-      )
-    : [];
+  technologies = expandTechnologyClaims(technologies);
 
   projectName =
     typeof projectName === "string" ? projectName : "";
@@ -1381,8 +1364,6 @@ const verifyGithubProject = async ({
       ? projectDescription
       : "";
 
-  candidateGithub =
-    typeof candidateGithub === "string" ? candidateGithub : "";
 
   const repository = parseGithubUrl(githubUrl);
 
@@ -1429,6 +1410,11 @@ const verifyGithubProject = async ({
     );
 
     const repoData = repoResponse.data;
+    const repositoryPath = `/repos/${owner}/${repo}`;
+    const { data: head } = await githubApi.get(
+      `${repositoryPath}/commits/${encodeURIComponent(repoData.default_branch)}`
+    );
+    const checkedSha = head.sha;
 
     // =================================================
     // 2. CHECK README
@@ -1441,7 +1427,8 @@ const verifyGithubProject = async ({
       const readmeResponse = await githubApi.get(
         `/repos/${owner}/${repo}/readme`,
         {
-          headers: {
+          params: { ref: checkedSha },
+            headers: {
             Accept: "application/vnd.github+json",
           },
         }
@@ -1491,7 +1478,7 @@ const verifyGithubProject = async ({
     // =================================================
 
     const treeResponse = await githubApi.get(
-      `/repos/${owner}/${repo}/git/trees/${repoData.default_branch}?recursive=1`,
+      `/repos/${owner}/${repo}/git/trees/${checkedSha}?recursive=1`,
       {
         headers: {
           Accept: "application/vnd.github+json",
@@ -1499,6 +1486,7 @@ const verifyGithubProject = async ({
       }
     );
 
+    if (treeResponse.data.truncated) throw new Error("GitHub returned an incomplete repository tree.");
     const tree = treeResponse.data.tree || [];
 
     const treePaths = tree
@@ -1573,6 +1561,7 @@ const verifyGithubProject = async ({
         const response = await githubApi.get(
           `/repos/${owner}/${repo}/contents/${packageFile.path}`,
           {
+            params: { ref: checkedSha },
             headers: {
               Accept: "application/vnd.github+json",
             },
@@ -1614,6 +1603,7 @@ const verifyGithubProject = async ({
         const response = await githubApi.get(
           `/repos/${owner}/${repo}/contents/${dependencyFile.path}`,
           {
+            params: { ref: checkedSha },
             headers: {
               Accept: "application/vnd.github+json",
             },
@@ -1683,82 +1673,68 @@ const verifyGithubProject = async ({
     // 12. CANDIDATE OWNERSHIP
     // =================================================
 
-    const candidateUsername =
-      parseGithubUsername(candidateGithub);
-
-    const repositoryOwner =
-      repoData.owner?.login || owner;
-
-    let ownerMatches = false;
-
-    if (candidateUsername) {
-      ownerMatches =
-        candidateUsername.toLowerCase() ===
-        repositoryOwner.toLowerCase();
-    }
-
-    // =================================================
-    // 13. CHECK CONTRIBUTORS
-    // =================================================
-
-    let candidateIsContributor = false;
-
-    if (candidateUsername) {
-      try {
-        // GitHub returns at most 100 contributors per page.
-        // Check up to 10 pages and stop when we find the candidate.
-        for (let page = 1; page <= 10; page++) {
-          const contributorsResponse = await githubApi.get(
-            `/repos/${owner}/${repo}/contributors`,
-            {
-              params: {
-                per_page: 100,
-                page,
-              },
-            }
-          );
-
-          const contributors = contributorsResponse.data || [];
-
-          candidateIsContributor = contributors.some(
-            (contributor) =>
-              contributor.login?.toLowerCase() ===
-              candidateUsername.toLowerCase()
-          );
-
-          if (
-            candidateIsContributor ||
-            contributors.length < 100
-          ) {
-            break;
-          }
+    const repositoryOwner = repoData.owner?.login || owner;
+    const ownerMatches = Boolean(candidateId && String(repoData.owner?.id) === candidateId);
+    let candidateUsername;
+    let commits = [];
+    let pullRequests = [];
+    let contributionCheckIncomplete = false;
+    if (candidateId) {
+      const { data: candidate } = await githubApi.get(`/user/${candidateId}`);
+      candidateUsername = candidate.login;
+      const [commitResult, pullResult] = await Promise.allSettled([
+        repoData.fork ? Promise.resolve({ data: [] }) : githubApi.get(`${repositoryPath}/commits`, {
+          params: { sha: checkedSha, author: candidateUsername, per_page: 20 },
+        }),
+        githubApi.get("/search/issues", {
+          params: {
+            q: `repo:${repoData.full_name} is:pr is:merged author:${candidateUsername}`,
+            sort: "updated", order: "desc", per_page: 5,
+          },
+        }),
+      ]);
+      contributionCheckIncomplete = commitResult.status === "rejected" || pullResult.status === "rejected" ||
+        Boolean(pullResult.value?.data.incomplete_results);
+      commits = (commitResult.value?.data || [])
+        .filter((commit) => String(commit.author?.id) === candidateId && commit.parents?.length === 1)
+        .slice(0, 5)
+        .map((commit) => ({
+          apiPath: `${repositoryPath}/commits/${commit.sha}`,
+          label: commit.commit.message.split("\n")[0].slice(0, 160),
+          date: commit.commit.author?.date,
+          url: `https://github.com/${repoData.full_name}/commit/${commit.sha}`,
+        }));
+      pullRequests = (pullResult.value?.data.items || [])
+        .filter((pr) => String(pr.user?.id) === candidateId && pr.pull_request?.merged_at)
+        .map((pr) => ({
+          apiPath: `${repositoryPath}/pulls/${pr.number}/files`,
+          label: `#${pr.number} ${pr.title}`,
+          date: pr.pull_request.merged_at,
+          url: `https://github.com/${repoData.full_name}/pull/${pr.number}`,
+        }));
+      async function addFileExamples({ apiPath, ...item }) {
+        try {
+          const { data } = await githubApi.get(apiPath, { params: { per_page: 5 } });
+          const files = Array.isArray(data) ? data : data.files || [];
+          return { ...item, files: files.slice(0, 5).map((file) => file.filename) };
+        } catch {
+          return item;
         }
-      } catch (error) {
-        // Do not silently treat API errors as "not a contributor".
-        // The outer verification error handler handles API errors.
-        throw error;
       }
+      [commits, pullRequests] = await Promise.all([
+        Promise.all(commits.slice(0, 3).map(addFileExamples)),
+        Promise.all(pullRequests.slice(0, 3).map(addFileExamples)),
+      ]);
     }
-      
-    
+    const candidateIsContributor = commits.length > 0 || pullRequests.length > 0;
+    if (contributionCheckIncomplete && !candidateIsContributor) {
+      return {
+        status: "Unable to Verify",
+        error: { message: "GitHub returned incomplete contribution data. Try again shortly." },
+      };
+    }
+    const ownershipScore = candidateIsContributor ? (ownerMatches ? 100 : 70) : 0;
 
-// =================================================
-// 14. OWNERSHIP SCORE
-// =================================================
-
-let ownershipScore = 50;
-
-if (candidateGithub) {
-  if (ownerMatches) {
-    ownershipScore = 100;
-  } else if (candidateIsContributor) {
-    ownershipScore = 70;
-  } else {
-    ownershipScore = 0;
-  }
-}
-
-// =================================================
 // 15. PROJECT RELEVANCE AND EVIDENCE
 // =================================================
 
@@ -1871,7 +1847,7 @@ const basicVerification =
 // =================================================
 
 const status =
-  basicVerification && authenticityScore >= 60
+  basicVerification && candidateIsContributor && authenticityScore >= 60
     ? "Verified"
     : "Failed";
 
@@ -1889,6 +1865,7 @@ return {
   detectedTechnologies,
   matchedTechnologies,
   missingTechnologies,
+  contributionEvidence: { connected: Boolean(candidateId), checkedSha, commits, pullRequests, incomplete: contributionCheckIncomplete },
 
   projectEvidence: {
     score: projectEvidenceScore,

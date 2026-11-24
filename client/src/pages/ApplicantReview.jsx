@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import {
   ArrowLeft,
@@ -674,6 +674,12 @@ const githubProjects = studentProjects.filter(
             >
               {status}
             </p>
+            {(status === "Accepted" || application.lastMessageAt) && (
+              <Link to={`/recruiter/messages?application=${applicationId}`}
+                className="mt-3 inline-flex rounded-lg border border-indigo-400/40 px-3 py-2 text-sm font-medium text-indigo-200 hover:bg-indigo-400/10">
+                {status === "Accepted" ? "Message candidate" : "View conversation"}
+              </Link>
+            )}
 
           </div>
 
@@ -744,6 +750,11 @@ const GitHubProjectVerification = ({ project }) => {
   const evidence = verification?.projectEvidence || {};
   const authenticity = verification?.authenticity || {};
   const ownership = authenticity?.ownership || {};
+  const contributions = verification?.contributionEvidence;
+  const examples = [
+    ...(contributions?.pullRequests || []).map((item) => ({ ...item, kind: "Merged pull request" })),
+    ...(contributions?.commits || []).map((item) => ({ ...item, kind: "Commit" })),
+  ];
 
   const renderCheck = (label, value) => (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-900 p-4">
@@ -818,9 +829,34 @@ const GitHubProjectVerification = ({ project }) => {
         <span
           className={`w-fit rounded-full border px-3 py-1.5 text-xs font-semibold ${statusStyle}`}
         >
-          {status}
+          {status === "Verified" && !contributions ? "Recheck required" : status}
         </span>
       </div>
+
+      <section className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+        <h4 className="font-semibold text-white">GitHub contribution evidence</h4>
+        <dl className="mt-3 grid gap-2 text-sm text-zinc-300">
+          <div> <dt className="inline font-medium text-white">Account</dt>{" · "}
+            <dd className="inline">{contributions?.connected ? `Connected${ownership.candidateGithub ? ` as @${ownership.candidateGithub}` : ""}` : contributions ? "Connection needed" : "Recheck required"}</dd>
+          </div>
+          <div> <dt className="inline font-medium text-white">Contributions</dt>{" · "}
+            <dd className="inline">{examples.length > 0 ? `${examples.length} examples found` : contributions?.incomplete ? "Check incomplete" : contributions?.connected ? "None found in this check" : "Awaiting verification"}</dd>
+          </div>
+          <div> <dt className="inline font-medium text-white">Project evidence</dt>{" · "}
+            <dd className="inline">{contributions ? evidence.status || "Unavailable" : "Recheck required"}</dd>
+          </div>
+        </dl>
+        {contributions?.checkedSha && <p className="mt-2 text-xs text-zinc-400">Repository snapshot <code>{contributions.checkedSha.slice(0, 12)}</code>{verification.verifiedAt && ` · Checked ${new Date(verification.verifiedAt).toLocaleDateString()}`}</p>}
+        {examples.length > 0 && <ul className="mt-3 space-y-3">
+          {examples.map(({ url, label, kind, date, files }) => (
+            <li key={url} className="border-t border-zinc-800 pt-2">
+              <p className="text-xs text-zinc-400">{kind}{date && ` · ${new Date(date).toLocaleDateString()}`}</p>
+              <a href={url} target="_blank" rel="noreferrer" className="break-words text-sm text-indigo-300 hover:underline">{label}</a>
+              {files?.length > 0 && <p className="mt-1 break-all text-xs text-zinc-400">{files.join(" · ")}</p>}
+            </li>
+          ))}
+        </ul>}
+      </section>
 
       {/* Repository Link */}
       {project.githubUrl && (
@@ -986,7 +1022,7 @@ const GitHubProjectVerification = ({ project }) => {
           )}
 
           {/* Ownership Evidence */}
-          {authenticity.ownership && (
+          {contributions?.connected && authenticity.ownership && (
             <div className="mt-6 rounded-lg border border-zinc-800 bg-zinc-900 p-4">
               <h4 className="mb-4 font-medium text-white">
                 Repository Ownership Evidence
@@ -1012,7 +1048,7 @@ const GitHubProjectVerification = ({ project }) => {
                 </div>
 
                 {renderCheck(
-                  "Owner username matches",
+                  "Connected account owns repository",
                   ownership.ownerMatches
                 )}
 

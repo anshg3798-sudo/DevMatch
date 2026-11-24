@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema(
     },
 
     googleIdentity: { type: String, unique: true, sparse: true, select: false },
-    githubIdentity: { type: String, unique: true, sparse: true, select: false },
+    githubIdentity: { type: [String], default: undefined, unique: true, sparse: true, select: false },
+    githubAccountNames: { type: Map, of: String, select: false },
     passwordResetDigest: { type: String, select: false },
     passwordResetExpiresAt: { type: Date, select: false },
     passwordResetRequestedAt: { type: Date, select: false },
@@ -163,6 +164,7 @@ verification: {
   },
 
   // Ownership and authenticity analysis
+  contributionEvidence: mongoose.Schema.Types.Mixed,
   authenticity: {
     type: mongoose.Schema.Types.Mixed,
     default: null,

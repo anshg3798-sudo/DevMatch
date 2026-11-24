@@ -5,9 +5,19 @@ const path = require("path");
 const {
   verifyGithubProject,
 } = require("../utils/githubVerification");
+const githubAccountIds = (user) => [...new Set(
+  [user.oauthIdentity, ...[user.githubIdentity].flat()]
+    .filter((identity) => /^github:\d+$/.test(identity || ""))
+    .map((identity) => identity.slice(7))
+)];
+
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select(
+      "name email role skills github leetcode experienceYears communicationRating " +
+      "availabilityHours projectsCount projects resumeUrl resumeFileName createdAt updatedAt " +
+      "githubIdentity oauthIdentity githubAccountNames"
+    );
 
     if (!user) {
       return res.status(404).json({
@@ -16,9 +26,15 @@ const getProfile = async (req, res) => {
       });
     }
 
+    const profile = user.toObject();
+    delete profile.githubIdentity;
+    delete profile.oauthIdentity;
+    delete profile.githubAccountNames;
     res.json({
       success: true,
-      user,
+      user: { ...profile, githubAccounts: githubAccountIds(user).map((id) => ({
+        id, login: user.githubAccountNames?.get(id),
+      })) },
     });
   } catch (error) {
     console.error("Get profile error:", error);
@@ -110,7 +126,17 @@ if (projectsCount !== undefined) {
   user.projectsCount = Number(projectsCount);
 }
 if (projects !== undefined) {
-  user.projects = projects;
+  if (!Array.isArray(projects)) return res.status(400).json({ message: "Projects must be a list." });
+  user.projects = projects.map(({ _id, name, description, technologies, githubUrl, liveUrl }) => {
+    const existing = _id && user.projects.id(_id);
+    const sameClaim = existing && existing.name === name && existing.description === description &&
+      existing.githubUrl === githubUrl && JSON.stringify(existing.technologies) === JSON.stringify(technologies);
+    return {
+      ...(existing && { _id: existing._id }),
+      name, description, technologies, githubUrl, liveUrl,
+      ...(sameClaim && { verification: existing.verification }),
+    };
+  });
 }
     await user.save();
 
@@ -275,9 +301,7 @@ const verifyProject = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const user = await User.findById(
-      req.user.id
-    );
+    const user = await User.findById(req.user.id).select("+githubIdentity +oauthIdentity");
 
     if (!user) {
       return res.status(404).json({
@@ -305,6 +329,12 @@ const verifyProject = async (req, res) => {
       });
     }
 
+    const accountIds = githubAccountIds(user);
+    const selectedAccount = req.body?.githubAccountId;
+    if (selectedAccount !== undefined && !accountIds.includes(selectedAccount)) {
+      return res.status(400).json({ success: false, message: "Choose a GitHub account connected to your profile." });
+    }
+
     const verification =
       await verifyGithubProject({
         githubUrl: project.githubUrl,
@@ -312,7 +342,7 @@ const verifyProject = async (req, res) => {
           project.technologies || [],
         projectName:project.name,
         projectDescription: project.description,
-        candidateGithub:user.github,
+        candidateId: selectedAccount ?? accountIds[0],
       });
 
    // If GitHub itself could not be reached, do not save this
@@ -326,9 +356,19 @@ if (verification.status === "Unable to Verify") {
   });
 }
 
-project.verification = verification;
-
-await user.save();
+const saved = await User.updateOne({
+  _id: user._id,
+  projects: { $elemMatch: {
+    _id: project._id,
+    githubUrl: project.githubUrl,
+    name: project.name,
+    description: project.description,
+    technologies: project.technologies,
+  } },
+}, { $set: { "projects.$.verification": verification } });
+if (!saved.matchedCount) {
+  return res.status(409).json({ success: false, message: "Project changed during verification. Run the check again." });
+}
 
 return res.status(200).json({
   success: true,
@@ -339,14 +379,6 @@ return res.status(200).json({
   verification,
 });
 
-    res.status(200).json({
-      success: true,
-      message:
-        verification.status === "Verified"
-          ? "Project verified successfully."
-          : "Project verification failed.",
-      verification,
-    });
   } catch (error) {
     console.error(
       "Project verification error:",

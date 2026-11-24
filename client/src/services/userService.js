@@ -43,9 +43,10 @@ export const uploadResume = async (file) => {
 
   return response.data;
 };
-export const verifyProject = async (projectId) => {
+export const verifyProject = async (projectId, githubAccountId) => {
   const response = await API.post(
-    `/users/projects/${projectId}/verify`
+    `/users/projects/${projectId}/verify`,
+    { githubAccountId }
   );
 
   return response.data;

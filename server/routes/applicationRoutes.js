@@ -6,6 +6,11 @@ const { applyToProject,getApplicants,getMyApplications,updateApplicationStatus,g
 
 const authMiddleware = require("../middleware/authMiddleware");
 const { isStudent,isRecruiter } = require("../middleware/roleMiddleware");
+const messages = require("../controllers/applicationMessages");
+
+router.get("/conversations", authMiddleware, messages.listConversations);
+router.post("/:applicationId/conversation/open", authMiddleware, messages.openConversation);
+router.post("/:applicationId/conversation/messages", authMiddleware, messages.sendMessage);
 
 router.post(
   "/:projectId",
